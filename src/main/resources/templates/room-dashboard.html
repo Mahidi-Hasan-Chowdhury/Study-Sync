@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="content">
+    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Collaborate /</span> Quiz Rooms</h4>
+
+    <!-- Messages -->
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+    <div class="row">
+        <!-- Join Room Card -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Join a Room</h5>
+                    <p class="card-text">Enter an access code to join an existing quiz room.</p>
+                    <form th:action="@{/room/join}" method="post">
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" name="accessCode"
+                                placeholder="Enter Code (e.g. A1B2C3)" required>
+                            <button class="btn btn-primary" type="submit">Join</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create Room Card -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Create a Room</h5>
+                    <p class="card-text">Set up a challenge for your peers.</p>
+                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
+                        data-bs-target="#createRoomModal">
+                        Create New Room
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Rooms List -->
+    <div class="card">
+        <h5 class="card-header">My Quiz Rooms</h5>
+        <div class="table-responsive text-nowrap">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Room Name</th>
+                        <th>Code</th>
+                        <th>Deadline</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="table-border-bottom-0">
+                    <tr th:if="${#lists.isEmpty(rooms)}">
+                        <td colspan="5" class="text-center">No rooms found. Join or create one!</td>
+                    </tr>
+                    <tr th:each="room : ${rooms}">
+                        <td><strong th:text="${room.title}">Title</strong></td>
+                        <td><span class="badge bg-label-primary me-1" th:text="${room.accessCode}">CODE</span></td>
+                        <td th:text="${#temporals.format(room.deadline, 'dd MMM HH:mm')}">Deadline</td>
+                        <td>
+                            <span th:if="${room.isActive()}" class="badge bg-success">Active</span>
+                            <span th:unless="${room.isActive()}" class="badge bg-secondary">Expired</span>
+                        </td>
+                        <td>
+                            <a th:href="@{/room/{id}(id=${room.id})}" class="btn btn-sm btn-info">Enter</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Create Room Modal -->
+    <div class="modal fade" id="createRoomModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create Quiz Room</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form th:action="@{/room/create}" method="post">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col mb-3">
+                                <label for="title" class="form-label">Room Title</label>
+                                <input type="text" id="title" name="title" class="form-control"
+                                    placeholder="e.g. Friday Challenge" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col mb-3">
+                                <label for="quizId" class="form-label">Select Quiz</label>
+                                <select id="quizId" name="quizId" class="form-select" required>
+                                    <option th:each="q : ${quizzes}" th:value="${q.id}"
+                                        th:text="${q.pdfFileName + ' - ' + q.difficulty}"></option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col mb-3">
+                                <label for="duration" class="form-label">Duration</label>
+                                <select id="duration" name="durationHours" class="form-select">
+                                    <option value="1">1 Hour</option>
+                                    <option value="24" selected>24 Hours</option>
+                                    <option value="48">48 Hours</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Create Room</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>

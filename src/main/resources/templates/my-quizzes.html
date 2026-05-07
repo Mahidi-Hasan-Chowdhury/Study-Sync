@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="content">
+    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">AI Tools /</span> My Quizzes</h4>
+
+    <!-- Error/Success Messages -->
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bx bx-check-circle"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="row">
+        <!-- Recent Quizzes -->
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">My Generated Quizzes</h5>
+                    <a th:href="@{/quiz}" class="btn btn-primary btn-sm">
+                        <i class="bx bx-plus me-1"></i> Create New
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div th:if="${#lists.isEmpty(quizzes)}" class="text-center text-muted py-5">
+                        <div class="mb-3">
+                            <i class="bx bx-file bx-lg"></i>
+                        </div>
+                        <h5>No quizzes found</h5>
+                        <p class="text-muted">You haven't generated any quizzes yet. Get started by creating one!</p>
+                        <a th:href="@{/quiz}" class="btn btn-outline-primary mt-2">Create Quiz</a>
+                    </div>
+
+                    <div th:if="${!#lists.isEmpty(quizzes)}">
+                        <div class="list-group">
+                            <div th:each="quiz : ${quizzes}" class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <div class="avatar avatar-md bg-label-primary rounded p-2">
+                                                <i class="bx bxs-file-pdf fs-3"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1" th:text="${quiz.pdfFileName}">PDF Name</h6>
+                                            <p class="mb-0 text-muted small">
+                                                <span class="badge me-1"
+                                                    th:classappend="${quiz.difficulty == 'EASY'} ? 'bg-success' : (${quiz.difficulty == 'HARD'} ? 'bg-danger' : 'bg-warning')"
+                                                    th:text="${quiz.difficulty}">
+                                                    MEDIUM
+                                                </span>
+                                                <span class="me-2">
+                                                    <!--                                                    <i class="bx bx-question-mark"></i>-->
+                                                    <span th:text="${quiz.questionCount} + ' Qs'">5 Qs</span>
+                                                </span>
+                                                <span>
+                                                    <i class="bx bx-calendar"></i>
+                                                    <span
+                                                        th:text="${#temporals.format(quiz.createdAt, 'dd MMM yyyy, HH:mm')}">Date</span>
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="btn-group">
+                                        <a th:href="@{/quiz/take/{id}(id=${quiz.id})}" class="btn btn-sm btn-primary">
+                                            <i class="bx bx-play me-1"></i> Take
+                                        </a>
+                                        <a th:href="@{/quiz/view/{id}(id=${quiz.id})}"
+                                            class="btn btn-sm btn-outline-secondary">
+                                            <i class="bx bx-show me-1"></i> View
+                                        </a>
+                                        <!-- Placeholder for delete if needed later -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>

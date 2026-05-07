@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="content">
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Take Quiz /</span>
+        <span th:text="${quiz.pdfFileName}">PDF Name</span>
+    </h4>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <!-- Timer & Info Card -->
+            <div class="card mb-3 bg-primary text-white" id="timerCard">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6 class="text-white mb-1">
+                                <i class="bx bx-time-five"></i> Time Remaining
+                            </h6>
+                            <h3 class="text-white mb-0" id="timer">Loading...</h3>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <h6 class="text-white mb-1">
+                                <i class="bx bx-layer"></i> Difficulty
+                            </h6>
+                            <h3 class="text-white mb-0">
+                                <span class="badge bg-white"
+                                    th:classappend="${quiz.difficulty == 'EASY'} ? 'text-success' : (${quiz.difficulty == 'HARD'} ? 'text-danger' : 'text-warning')"
+                                    th:text="${quiz.difficulty}">
+                                    MEDIUM
+                                </span>
+                            </h3>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <h6 class="text-white mb-1">
+                                <i class="bx "></i> Questions
+                            </h6>
+                            <h3 class="text-white mb-0" th:text="${quiz.questionCount}">5</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Form -->
+            <form th:action="@{/quiz/submit/{id}(id=${quiz.id})}" method="post" id="quizForm">
+                <input type="hidden" name="timeTaken" id="timeTaken" value="0">
+                <input type="hidden" name="roomId" th:value="${roomId}">
+
+                <!-- Questions Loop -->
+                <div th:each="question, iterStat : ${quiz.questions}" class="mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <span class="badge bg-primary me-2" th:text="'Question ' + ${iterStat.count}">Q1</span>
+                                <span th:text="${question.question}">Question text</span>
+                            </h6>
+
+                            <div class="mt-3">
+                                <!-- Option A -->
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" th:name="${iterStat.count}"
+                                        th:id="'q' + ${iterStat.count} + 'a'" value="A" required>
+                                    <label class="form-check-label" th:for="'q' + ${iterStat.count} + 'a'">
+                                        <strong>A.</strong> <span th:text="${question.optionA}">Option A</span>
+                                    </label>
+                                </div>
+
+                                <!-- Option B -->
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" th:name="${iterStat.count}"
+                                        th:id="'q' + ${iterStat.count} + 'b'" value="B" required>
+                                    <label class="form-check-label" th:for="'q' + ${iterStat.count} + 'b'">
+                                        <strong>B.</strong> <span th:text="${question.optionB}">Option B</span>
+                                    </label>
+                                </div>
+
+                                <!-- Option C -->
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" th:name="${iterStat.count}"
+                                        th:id="'q' + ${iterStat.count} + 'c'" value="C" required>
+                                    <label class="form-check-label" th:for="'q' + ${iterStat.count} + 'c'">
+                                        <strong>C.</strong> <span th:text="${question.optionC}">Option C</span>
+                                    </label>
+                                </div>
+
+                                <!-- Option D -->
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" th:name="${iterStat.count}"
+                                        th:id="'q' + ${iterStat.count} + 'd'" value="D" required>
+                                    <label class="form-check-label" th:for="'q' + ${iterStat.count} + 'd'">
+                                        <strong>D.</strong> <span th:text="${question.optionD}">Option D</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="card">
+                    <div class="card-body text-center">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bx bx-check-circle"></i> Submit Quiz
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dynamic Timer JavaScript -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        // Get time limit from Quiz object (passed from backend)
+        const timeLimit = /*[[${quiz.timeLimitSeconds}]]*/ 150;
+        let timeLeft = timeLimit;
+        let startTime = Date.now();
+
+        const timerDisplay = document.getElementById('timer');
+        const timeTakenInput = document.getElementById('timeTaken');
+        const quizForm = document.getElementById('quizForm');
+        const timerCard = document.getElementById('timerCard');
+
+        // Format time as MM:SS
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return mins + ':' + (secs < 10 ? '0' : '') + secs;
+        }
+
+        // Initialize timer display
+        timerDisplay.textContent = formatTime(timeLeft);
+
+        // Update timer every second
+        const countdown = setInterval(function () {
+            timeLeft--;
+            timerDisplay.textContent = formatTime(timeLeft);
+
+            // Change color when time is low (25% remaining)
+            const warningThreshold = Math.floor(timeLimit / 4);
+            if (timeLeft <= warningThreshold && timeLeft > 0) {
+                timerCard.classList.remove('bg-primary');
+                timerCard.classList.add('bg-warning');
+            }
+
+            // Red when very low (10% remaining)
+            const dangerThreshold = Math.floor(timeLimit / 10);
+            if (timeLeft <= dangerThreshold && timeLeft > 0) {
+                timerCard.classList.remove('bg-warning');
+                timerCard.classList.add('bg-danger');
+            }
+
+            // Auto-submit when time runs out
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                alert('Time is up! Quiz will be submitted automatically.');
+                submitQuizWithTime();
+            }
+        }, 1000);
+
+        // Calculate time taken and submit
+        function submitQuizWithTime() {
+            const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+            timeTakenInput.value = timeTaken;
+            quizForm.submit();
+        }
+
+        // On manual submit, calculate time taken
+        quizForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            clearInterval(countdown);
+            submitQuizWithTime();
+        });
+        /*]]>*/
+    </script>
+</div>
+
+</html>

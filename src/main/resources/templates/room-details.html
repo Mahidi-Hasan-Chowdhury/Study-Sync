@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="content">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h4 class="fw-bold"><span class="text-muted fw-light">Rooms /</span> <span th:text="${room.title}">Room
+                    Title</span></h4>
+            <p class="mb-0">Access Code: <span class="badge bg-primary fs-5" th:text="${room.accessCode}">CODE</span>
+            </p>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="card bg-label-secondary">
+                <div class="card-body py-2">
+                    <small class="d-block mb-1">Deadline:</small>
+                    <strong th:text="${#temporals.format(room.deadline, 'dd MMM yyyy HH:mm')}">Date</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Action Card -->
+        <div class="col-md-12 mb-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <div th:if="${!myStatus.isCompleted()}">
+                        <h3 class="card-title text-primary">Ready to take the challenge?</h3>
+                        <p class="card-text">Once you start, the timer will begin. Good luck!</p>
+                        <!-- Passing roomId to track this attempt -->
+                        <a th:href="@{/quiz/take/{id}(id=${room.quizId}, roomId=${room.id})}"
+                            class="btn btn-lg btn-success">
+                            <i class="bx bx-play-circle me-1"></i> Start Quiz Now
+                        </a>
+                    </div>
+                    <div th:if="${myStatus.isCompleted()}">
+                        <h3 class="card-title text-success">Challenge Completed!</h3>
+                        <p class="fs-4 mb-0">Your Score: <strong th:text="${myStatus.score + '%'}">80%</strong></p>
+                        <p class="text-muted">Check the leaderboard below to see your rank.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="col-md-12">
+            <div class="card">
+                <h5 class="card-header">Live Leaderboard</h5>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>User</th>
+                                <th>Score</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="p, iterStat : ${leaderboard}"
+                                th:classappend="${p.userId == myStatus.userId} ? 'table-primary'">
+                                <td th:text="${iterStat.count}">1</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar avatar-xs me-2">
+                                        </div>
+                                        <strong class="text-heading"
+                                            th:text="${p.username != null ? p.username : 'User'}">User</strong>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span th:if="${p.isCompleted()}" th:text="${p.score + '%'}">90%</span>
+                                    <span th:unless="${p.isCompleted()}" class="text-muted">-</span>
+                                </td>
+                                <td>
+                                    <span th:if="${p.isCompleted()}" class="badge bg-label-success">Completed</span>
+                                    <span th:unless="${p.isCompleted()}" class="badge bg-label-warning">Pending</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</html>

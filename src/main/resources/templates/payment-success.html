@@ -1,0 +1,47 @@
+<div th:fragment="content" class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="card border-0 shadow-lg p-5"
+                style="border-radius: 20px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);">
+                <div class="mb-4">
+                    <div class="display-1 text-success mb-3">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h2 class="fw-bold mb-3"
+                        style="background: linear-gradient(45deg, #10b981, #059669); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                        Subscription Successful!
+                    </h2>
+                    <p class="lead text-muted mb-4" th:text="${message}">You are now a Pro member.</p>
+                </div>
+
+                <div class="row g-4 mb-5 text-start">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3 h-100">
+                            <h5 class="fw-bold"><i class="fas fa-file-upload text-primary me-2"></i>Increased Limits
+                            </h5>
+                            <p class="small text-muted mb-0">Upload files up to 20MB for your study materials.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3 h-100">
+                            <h5 class="fw-bold"><i class="fas fa-file-code text-primary me-2"></i>Multi-format Support
+                            </h5>
+                            <p class="small text-muted mb-0">Upload DOCX and PPTX files in addition to PDFs.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-block">
+                    <a href="/quiz" class="btn btn-primary btn-lg px-5"
+                        style="border-radius: 30px; background: linear-gradient(45deg, #6366f1, #4f46e5); border: none;">
+                        <i class="fas fa-plus me-2"></i>Create New Quiz
+                    </a>
+                    <a href="/quiz/dashboard" class="btn btn-outline-secondary btn-lg px-5 ms-md-2"
+                        style="border-radius: 30px;">
+                        Go to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

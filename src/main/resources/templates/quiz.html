@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="content">
+    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">AI Tools /</span> MCQ Quiz Generator</h4>
+
+    <!-- Error/Success Messages -->
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bx bx-check-circle"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="row">
+        <!-- Upload Section -->
+        <div class="col-md-8 offset-md-2 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Upload File for Quiz Generation</h5>
+                    <a th:href="@{/quiz/my-quizzes}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bx bx-list-ul me-1"></i> View My Quizzes
+                    </a>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">Upload a study document and our AI will generate MCQ questions based on
+                        its
+                        content.
+                        <span class="badge bg-label-primary">Pro</span> users can also upload DOCX and PPTX up to 20MB.
+                    </p>
+
+                    <form th:action="@{/quiz/upload}" method="post" enctype="multipart/form-data">
+                        <!-- PDF File Input -->
+                        <div class="mb-3">
+                            <label for="pdfFile" class="form-label">Select File</label>
+                            <input type="file" class="form-control" id="pdfFile" name="pdfFile"
+                                accept=".pdf,.docx,.pptx" required>
+                            <div class="form-text">PDF (5MB) for Free. PDF, DOCX, PPTX (20MB) for Pro.</div>
+                        </div>
+
+                        <!-- Difficulty Selection -->
+                        <div class="mb-3">
+                            <label for="difficulty" class="form-label">Difficulty Level</label>
+                            <select class="form-select" id="difficulty" name="difficulty" required>
+                                <option value="EASY">Easy (30 sec/question)</option>
+                                <option value="MEDIUM" selected>Medium (45 sec/question)</option>
+                                <option value="HARD">Hard (60 sec/question)</option>
+                            </select>
+                            <div class="form-text">
+                                <strong>Easy:</strong> Basic recall questions<br>
+                                <strong>Medium:</strong> Understanding & comprehension<br>
+                                <strong>Hard:</strong> Analysis & application
+                            </div>
+                        </div>
+
+                        <!-- Question Count -->
+                        <div class="mb-3">
+                            <label for="questionCount" class="form-label">Number of Questions</label>
+                            <input type="number" class="form-control" id="questionCount" name="questionCount" value="5"
+                                min="1" max="20" required>
+                            <div class="form-text">Choose between 1 and 20 questions</div>
+                        </div>
+
+                        <!-- Time Preview -->
+                        <div class="alert alert-info mb-3">
+                            <i class="bx bx-time-five"></i>
+                            <strong>Estimated Time:</strong>
+                            <span id="timePreview">3 min 45 sec</span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bx bx-upload me-1"></i> Upload & Generate Quiz
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for Time Preview -->
+    <script>
+        const difficultySelect = document.getElementById('difficulty');
+        const questionCountInput = document.getElementById('questionCount');
+        const timePreview = document.getElementById('timePreview');
+
+        function updateTimePreview() {
+            const difficulty = difficultySelect.value;
+            const questionCount = parseInt(questionCountInput.value) || 5;
+
+            let secondsPerQuestion;
+            switch (difficulty) {
+                case 'EASY': secondsPerQuestion = 30; break;
+                case 'HARD': secondsPerQuestion = 60; break;
+                default: secondsPerQuestion = 45; // MEDIUM
+            }
+
+            const totalSeconds = questionCount * secondsPerQuestion;
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+
+            timePreview.textContent = minutes + ' min ' + seconds + ' sec';
+        }
+
+        difficultySelect.addEventListener('change', updateTimePreview);
+        questionCountInput.addEventListener('input', updateTimePreview);
+
+        // Initial update
+        updateTimePreview();
+    </script>
+</div>
+
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="content">
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Quiz /</span> Attempt History
+    </h4>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <div th:if="${#lists.isEmpty(attempts)}" class="text-center py-5">
+                        <i class="bx bx-file bx-lg text-muted"></i>
+                        <p class="text-muted mt-2">No quiz attempts yet</p>
+                        <a th:href="@{/quiz}" class="btn btn-primary">Take Your First Quiz</a>
+                    </div>
+
+                    <div th:if="${!#lists.isEmpty(attempts)}">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>PDF Name</th>
+                                        <th>Score</th>
+                                        <th>Correct/Total</th>
+                                        <th>Time Taken</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="attempt : ${attempts}">
+                                        <td th:text="${attempt.pdfFileName}">JavaNotes.pdf</td>
+                                        <td>
+                                            <span class="badge"
+                                                th:classappend="${attempt.scorePercentage >= 80} ? 'bg-success' : (${attempt.scorePercentage >= 50} ? 'bg-warning' : 'bg-danger')"
+                                                th:text="${#numbers.formatDecimal(attempt.scorePercentage, 1, 2)} + '%'">
+                                                80%
+                                            </span>
+                                        </td>
+                                        <td th:text="${attempt.correctAnswers} + '/' + ${attempt.totalQuestions}">4/5
+                                        </td>
+                                        <td th:text="${attempt.timeTakenSeconds} + 's'">120s</td>
+                                        <td th:text="${#temporals.format(attempt.attemptedAt, 'dd MMM yyyy HH:mm')}">24
+                                            Jan 2026 12:30</td>
+                                        <td>
+                                            <a th:href="@{/quiz/results/{id}(id=${attempt.id})}"
+                                                class="btn btn-sm btn-outline-primary">
+                                                View Details
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>

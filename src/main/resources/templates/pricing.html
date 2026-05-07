@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="content" class="container-fluid py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 text-center mb-5">
+            <h1 class="display-4 fw-bold">Upgrade to Pro</h1>
+            <p class="lead text-muted">Unlock the full potential of Study Sync with higher limits and more formats.</p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center g-4">
+        <!-- Free Plan -->
+        <div class="col-md-5">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-header bg-dark border-0 py-4 text-center">
+                    <h3 class="fw-bold text-light">Free</h3>
+                    <h2 class="display-5 text-light">$0<small class="text-muted fs-6 text-light">/month</small></h2>
+                </div>
+                <div class="card-body p-4">
+                    <ul class="list-unstyled mb-4">
+                        <li class="mb-3"><i class="fas fa-check text-success me-2"></i>Generate AI Quizzes</li>
+                        <li class="mb-3"><i class="fas fa-check text-success me-2"></i>PDF Uploads</li>
+                        <li class="mb-3"><i class="fas fa-exclamation-circle text-warning me-2"></i>Max 5MB File Size
+                        </li>
+                    </ul>
+                    <div class="d-grid">
+                        <a href="#" th:if="${!isPro}" class="btn btn-outline-primary disabled">Current Plan</a>
+                        <a href="#" th:if="${isPro}" class="btn btn-outline-secondary disabled">Free Tier</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pro Plan -->
+        <div class="col-md-5">
+            <div class="card h-100 border-primary shadow">
+                <div
+                    class="card-header bg-dark text-white border-0 py-4 text-center position-relative overflow-hidden">
+                    <div class="position-absolute top-0 end-0 bg-warning text-dark px-3 py-1 fw-bold"
+                        style="font-size: 0.8rem; border-bottom-left-radius: 10px;">POPULAR</div>
+                    <h3 class="fw-bold text-light">Pro</h3>
+                    <h2 class="display-5 text-light">$9.99<small class="fs-6 text-light">/one-time</small></h2>
+                </div>
+                <div class="card-body p-4">
+                    <ul class="list-unstyled mb-4">
+                        <li class="mb-3"><i class="fas fa-check text-success me-2"></i>Everything in Free</li>
+                        <li class="mb-3"><i class="fas fa-check text-success me-2"></i><strong>20MB</strong> File Size
+                            Limit</li>
+                        <li class="mb-3"><i class="fas fa-check text-success me-2"></i><strong>DOCX & PPTX</strong>
+                            Support</li>
+                        <li class="mb-3"><i class="fas fa-check text-success me-2"></i>Priority AI Processing</li>
+                        <li class="mb-3"><i class="fas fa-check text-success me-2"></i>Pro Badge on Profile</li>
+                    </ul>
+                    <div class="d-grid">
+                        <a th:if="${!isPro}" th:href="@{/payment/subscribe}" class="btn btn-primary btn-lg">Upgrade
+                            Now</a>
+                        <a th:if="${isPro}" href="#" class="btn btn-success btn-lg disabled">
+                            <i class="fas fa-check-circle me-2"></i>Current Plan (PRO)
+                        </a>
+                    </div>
+                    <div th:if="${param.error}" class="alert alert-danger mt-3">
+                        <small th:text="${param.error}"></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="content">
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Quiz Results /</span>
+        <span th:text="${attempt.pdfFileName}">PDF Name</span>
+    </h4>
+
+    <!-- Info Card -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row text-center">
+                <div class="col-md-4">
+                    <h6 class="text-muted mb-1">Difficulty</h6>
+                    <h5>
+            <span class="badge"
+                  th:classappend="${attempt.difficulty == 'EASY'} ? 'bg-success' : (${attempt.difficulty == 'HARD'} ? 'bg-danger' : 'bg-warning')"
+                  th:text="${attempt.difficulty}">
+              MEDIUM
+            </span>
+                    </h5>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="text-muted mb-1">Questions</h6>
+                    <h5 th:text="${attempt.questionCount}">5</h5>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="text-muted mb-1">Time Limit</h6>
+                    <h5 th:text="${attempt.timeLimitSeconds / 60} + ' min ' +${attempt.timeLimitSeconds % 60} + ' sec' ">3 min</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Score Summary Card -->
+    <div class="col-lg-12 mb-4">
+        <div class="card" th:classappend="${attempt.scorePercentage >= 80} ? 'border-success' : (${attempt.scorePercentage >= 50} ? 'border-warning' : 'border-danger')">
+            <div class="card-body text-center">
+                <h1 class="display-1"
+                    th:classappend="${attempt.scorePercentage >= 80} ? 'text-success' : (${attempt.scorePercentage >= 50} ? 'text-warning' : 'text-danger')"
+                    th:text="${#numbers.formatDecimal(attempt.scorePercentage, 1, 2)} + '%'">
+                    80%
+                </h1>
+                <h4>Your Score</h4>
+
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <h5 class="text-success" th:text="${attempt.correctAnswers}">4</h5>
+                        <p class="text-muted">Correct Answers</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h5 class="text-danger" th:text="${attempt.totalQuestions - attempt.correctAnswers}">1</h5>
+                        <p class="text-muted">Wrong Answers</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h5 class="text-primary" th:text="${attempt.timeTakenSeconds} + 's'">120s</h5>
+                        <p class="text-muted">Time Taken</p>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+          <span th:if="${attempt.scorePercentage >= 80}" class="badge bg-success p-3">
+            <i class="bx bx-trophy"></i> Excellent! You passed with very good percentage!
+          </span>
+                    <span th:if="${attempt.scorePercentage >= 50 && attempt.scorePercentage < 80}" class="badge bg-warning p-3">
+            <i class="bx bx-smile"></i> Good job! Keep practicing!
+          </span>
+                    <span th:if="${attempt.scorePercentage < 50}" class="badge bg-danger p-3">
+            <i class="bx bx-sad"></i> Keep studying! You'll do better next time!
+          </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Answers -->
+    <div class="col-lg-12">
+        <h5 class="mb-3">Review Your Answers</h5>
+
+        <div th:each="userAnswer, iterStat : ${attempt.userAnswers}" class="mb-3">
+            <div class="card"
+                 th:classappend="${userAnswer.correct} ? 'border-success' : 'border-danger'">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <h6>
+              <span class="badge me-2"
+                    th:classappend="${userAnswer.correct} ? 'bg-success' : 'bg-danger'"
+                    th:text="'Q' + ${userAnswer.questionNumber}">
+                Q1
+              </span>
+                            <span th:text="${userAnswer.question}">Question text</span>
+                        </h6>
+                        <span th:if="${userAnswer.correct}" class="badge bg-success">
+              <i class="bx bx-check"></i> Correct
+            </span>
+                        <span th:if="${!userAnswer.correct}" class="badge bg-danger">
+              <i class="bx bx-x"></i> Wrong
+            </span>
+                    </div>
+
+                    <div class="mt-3">
+                        <p class="mb-1">
+                            <strong>Your Answer:</strong>
+                            <span th:classappend="${userAnswer.correct} ? 'text-success' : 'text-danger'"
+                                  th:text="${userAnswer.selectedAnswer}">
+                A
+              </span>
+                        </p>
+                        <p class="mb-0" th:if="${!userAnswer.correct}">
+                            <strong>Correct Answer:</strong>
+                            <span class="text-success" th:text="${userAnswer.correctAnswer}">B</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="col-lg-12 mt-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <a th:href="@{/quiz/take/{id}(id=${attempt.quizId})}" class="btn btn-primary me-2">
+                    <i class="bx bx-refresh"></i> Retake Quiz
+                </a>
+                <a th:href="@{/quiz/view/{id}(id=${attempt.quizId})}" class="btn btn-outline-secondary me-2">
+                    <i class="bx bx-show"></i> View All Answers
+                </a>
+                <a th:href="@{/quiz}" class="btn btn-outline-primary">
+                    <i class="bx bx-home"></i> Back to Quizzes
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>

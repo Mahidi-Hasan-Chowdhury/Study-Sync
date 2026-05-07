@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<div th:fragment="content">
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Welcome back, <span class="text-primary"
+                sec:authentication="name">User</span>! /</span> Dashboard
+    </h4>
+    <!-- Overall Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-semibold d-block mb-1">Total Quizzes</span>
+                            <h3 class="card-title mb-0" th:text="${stats.totalQuizzes}">0</h3>
+                        </div>
+                        <div class="avatar flex-shrink-0">
+                            <span class="avatar-initial rounded bg-label-primary">
+                                <i class="bx bx-file bx-lg"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-semibold d-block mb-1">Total Attempts</span>
+                            <h3 class="card-title mb-0" th:text="${stats.totalAttempts}">0</h3>
+                        </div>
+                        <div class="avatar flex-shrink-0">
+                            <span class="avatar-initial rounded bg-label-success">
+                                <i class="bx bx-check-circle bx-lg"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-semibold d-block mb-1">Average Score</span>
+                            <h3 class="card-title mb-0"
+                                th:text="${#numbers.formatDecimal(stats.averageScore, 1, 2)} + '%'">0%</h3>
+                        </div>
+                        <div class="avatar flex-shrink-0">
+                            <span class="avatar-initial rounded bg-label-warning">
+                                <i class="bx bx-trophy bx-lg"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-semibold d-block mb-1">Questions Answered</span>
+                            <h3 class="card-title mb-0" th:text="${stats.totalQuestionsAnswered}">0</h3>
+                        </div>
+                        <div class="avatar flex-shrink-0">
+                            <span class="avatar-initial rounded bg-label-info">
+                                <i class="bx bx-question-mark bx-lg"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Performance by Difficulty -->
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Performance by Difficulty</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <div class="border rounded p-3">
+                                <span class="badge bg-success mb-2">EASY</span>
+                                <h4 th:text="${stats.easyAttempts} + ' Attempts'">0 Attempts</h4>
+                                <p class="mb-0">
+                                    Average: <strong
+                                        th:text="${#numbers.formatDecimal(stats.easyAverageScore, 1, 2)} + '%'">0%</strong>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border rounded p-3">
+                                <span class="badge bg-warning mb-2">MEDIUM</span>
+                                <h4 th:text="${stats.mediumAttempts} + ' Attempts'">0 Attempts</h4>
+                                <p class="mb-0">
+                                    Average: <strong
+                                        th:text="${#numbers.formatDecimal(stats.mediumAverageScore, 1, 2)} + '%'">0%</strong>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border rounded p-3">
+                                <span class="badge bg-danger mb-2">HARD</span>
+                                <h4 th:text="${stats.hardAttempts} + ' Attempts'">0 Attempts</h4>
+                                <p class="mb-0">
+                                    Average: <strong
+                                        th:text="${#numbers.formatDecimal(stats.hardAverageScore, 1, 2)} + '%'">0%</strong>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Best Performance & Recent Activity -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bx bx-trophy text-warning"></i> Best Performance</h5>
+                </div>
+                <div class="card-body text-center">
+                    <h1 class="display-3 text-success" th:text="${#numbers.formatDecimal(stats.bestScore, 1, 2)} + '%'">
+                        0%</h1>
+                    <p class="text-muted mb-0">
+                        <i class="bx bx-file"></i>
+                        <span th:text="${stats.bestQuizName}">No attempts yet</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bx bx-calendar text-primary"></i> Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>Last 7 Days</span>
+                        <h4 class="mb-0 text-primary" th:text="${stats.attemptsLast7Days}">0</h4>
+                    </div>
+                    <div class="progress mb-3" style="height: 10px;">
+                        <div class="progress-bar bg-primary" role="progressbar"
+                            th:style="'width: ' + ${stats.attemptsLast7Days > 0 ? (stats.attemptsLast7Days * 100.0 / stats.totalAttempts) : 0} + '%'">
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>Last 30 Days</span>
+                        <h4 class="mb-0 text-info" th:text="${stats.attemptsLast30Days}">0</h4>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-info" role="progressbar"
+                            th:style="'width: ' + ${stats.attemptsLast30Days > 0 ? (stats.attemptsLast30Days * 100.0 / stats.totalAttempts) : 0} + '%'">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Charts Section -->
+    <div class="row mb-4">
+        <!-- Bar Chart: Performance by Difficulty -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bx bx-bar-chart"></i> Performance Comparison</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="performanceChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pie Chart: Attempts Distribution -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bx bx-pie-chart-alt"></i> Attempts Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="distributionChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <a th:href="@{/quiz}" class="btn btn-primary me-2">
+                        <i class="bx bx-plus-circle"></i> Generate New Quiz
+                    </a>
+                    <a th:href="@{/quiz/history}" class="btn btn-outline-secondary">
+                        <i class="bx bx-history"></i> View Full History
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+
+        // Wait for DOM and Chart.js to be ready
+        document.addEventListener('DOMContentLoaded', function () {
+            // Check if Chart is available
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js library not loaded!');
+                return;
+            }
+
+            // Get statistics data from Thymeleaf
+            const stats = {
+                easyAttempts: /*[[${stats.easyAttempts}]]*/ 0,
+                easyScore: /*[[${stats.easyAverageScore}]]*/ 0,
+                mediumAttempts: /*[[${stats.mediumAttempts}]]*/ 0,
+                mediumScore: /*[[${stats.mediumAverageScore}]]*/ 0,
+                hardAttempts: /*[[${stats.hardAttempts}]]*/ 0,
+                hardScore: /*[[${stats.hardAverageScore}]]*/ 0
+            };
+
+            console.log('Chart data:', stats);
+
+            // Chart 1: Bar Chart - Performance by Difficulty
+            const performanceCanvas = document.getElementById('performanceChart');
+            if (performanceCanvas) {
+                const performanceCtx = performanceCanvas.getContext('2d');
+                new Chart(performanceCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Easy', 'Medium', 'Hard'],
+                        datasets: [{
+                            label: 'Average Score (%)',
+                            data: [stats.easyScore, stats.mediumScore, stats.hardScore],
+                            backgroundColor: [
+                                'rgba(40, 199, 111, 0.8)',   // Green for Easy
+                                'rgba(255, 159, 64, 0.8)',   // Orange for Medium
+                                'rgba(255, 99, 132, 0.8)'    // Red for Hard
+                            ],
+                            borderColor: [
+                                'rgba(40, 199, 111, 1)',
+                                'rgba(255, 159, 64, 1)',
+                                'rgba(255, 99, 132, 1)'
+                            ],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    callback: function (value) {
+                                        return value + '%';
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        return 'Average: ' + context.parsed.y.toFixed(2) + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                console.log('Performance chart created successfully');
+            } else {
+                console.error('Performance chart canvas not found!');
+            }
+
+            // Chart 2: Pie Chart - Attempts Distribution
+            const distributionCanvas = document.getElementById('distributionChart');
+            if (distributionCanvas) {
+                const distributionCtx = distributionCanvas.getContext('2d');
+                new Chart(distributionCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Easy', 'Medium', 'Hard'],
+                        datasets: [{
+                            label: 'Attempts',
+                            data: [stats.easyAttempts, stats.mediumAttempts, stats.hardAttempts],
+                            backgroundColor: [
+                                'rgba(40, 199, 111, 0.8)',
+                                'rgba(255, 159, 64, 0.8)',
+                                'rgba(255, 99, 132, 0.8)'
+                            ],
+                            borderColor: [
+                                'rgba(40, 199, 111, 1)',
+                                'rgba(255, 159, 64, 1)',
+                                'rgba(255, 99, 132, 1)'
+                            ],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                        return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                console.log('Distribution chart created successfully');
+            } else {
+                console.error('Distribution chart canvas not found!');
+            }
+        });
+
+        /*]]>*/
+    </script>
+</div>
+
+</html>
