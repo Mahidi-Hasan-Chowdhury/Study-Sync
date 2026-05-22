@@ -31,8 +31,10 @@ public class SecurityConfig {
                         .requestMatchers("/login", "/register", "/auth/**").permitAll()
                         .requestMatchers("/assets/**", "/css/**", "/js/**", "/img/**", "/favicon.ico").permitAll()
                         .requestMatchers("/error").permitAll()
+                        // Dashboard endpoint allowed for dev
+                        .requestMatchers("/dashboard/**").permitAll()
                         // Protected endpoints
-                        .requestMatchers("/quiz/**", "/dashboard/**", "/room/**").authenticated()
+                        .requestMatchers("/quiz/**", "/room/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
