@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title th:text="${status}">Error</title>
+    <link rel="stylesheet" th:href="@{/assets/vendor/css/core.css}" />
+    <link rel="stylesheet" th:href="@{/assets/vendor/css/theme-default.css}" />
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="display-4" th:text="'Error ' + ${status}">Error</h1>
+        <p class="lead">An unexpected error occurred. Please try again later.</p>
+        <a class="btn btn-primary" th:href="@{/}">Go Home</a>
+    </div>
+</body>
+</html>
