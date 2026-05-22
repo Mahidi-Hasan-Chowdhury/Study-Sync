@@ -35,7 +35,8 @@ public class SecurityConfig {
                         .requestMatchers("/dashboard/**").permitAll()
                         // Protected endpoints
                         .requestMatchers("/quiz/**", "/room/**").authenticated()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/", "/index.html").permitAll()
+                        .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         
