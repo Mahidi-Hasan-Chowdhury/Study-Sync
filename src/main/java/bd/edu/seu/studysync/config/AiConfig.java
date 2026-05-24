@@ -1,14 +1,7 @@
 package bd.edu.seu.studysync.config;
 
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
+// OpenAI client is auto-configured via application-prod.properties
 @Configuration
 public class AiConfig {
-
-    @Bean
-    public ChatClient chatClient(ChatClient.Builder builder) {
-        return builder.build();
-    }
 }

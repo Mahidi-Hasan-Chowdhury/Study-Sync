@@ -7,7 +7,7 @@ import bd.edu.seu.studysync.repository.QuizRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -17,7 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class QuizAiService {
 
-    private final ChatClient.Builder chatClientBuilder;
+    private final OpenAiChatModel chatModel;
     private final QuizRepository quizRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -32,12 +32,8 @@ public class QuizAiService {
             // Build AI prompt
             String prompt = buildMcqPrompt(pdfText, difficulty, questionCount);
 
-            // Call AI
-            ChatClient chatClient = chatClientBuilder.build();
-            String aiResponse = chatClient.prompt()
-                    .user(prompt)
-                    .call()
-                    .content();
+            // Call AI using OpenAIChatModel
+            String aiResponse = chatModel.call(prompt);
 
             // Parse JSON response
             List<Question> questions = parseAiResponse(aiResponse);
