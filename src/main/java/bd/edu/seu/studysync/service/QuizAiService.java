@@ -133,10 +133,19 @@ public class QuizAiService {
      * Parses AI JSON response to List of Questions
      */
     private List<Question> parseAiResponse(String aiResponse) throws Exception {
-        String cleanedResponse = aiResponse
-                .replace("```json", "")
-                .replace("```", "")
-                .trim();
+        String cleanedResponse = aiResponse.trim();
+        
+        int startIndex = cleanedResponse.indexOf('[');
+        int endIndex = cleanedResponse.lastIndexOf(']');
+        
+        if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
+            cleanedResponse = cleanedResponse.substring(startIndex, endIndex + 1);
+        } else {
+            cleanedResponse = cleanedResponse
+                    .replace("```json", "")
+                    .replace("```", "")
+                    .trim();
+        }
 
         return objectMapper.readValue(cleanedResponse, new TypeReference<List<Question>>() {});
     }
