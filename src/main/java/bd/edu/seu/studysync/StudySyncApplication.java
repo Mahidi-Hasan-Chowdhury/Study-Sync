@@ -33,6 +33,41 @@ public class StudySyncApplication {
         } catch (Exception e) {
             System.err.println(">>> Failed to load .env file: " + e.getMessage());
         }
+
+        // Programmatic cleanup of environment variables and system properties to prevent trailing newlines, quotes, or whitespace
+        String[] keysToClean = {
+            "GROQ_API_KEY", "GROQ_MODEL", "MONGODB_URI", 
+            "SPRING_PROFILES_ACTIVE", "STRIPE_PUBLIC_KEY", "STRIPE_SECRET_KEY"
+        };
+        for (String key : keysToClean) {
+            String val = System.getenv(key);
+            if (val == null) {
+                val = System.getProperty(key);
+            }
+            if (val != null) {
+                String original = val;
+                val = val.trim();
+                // Strip literal or escaped quotes
+                if (val.startsWith("\"") && val.endsWith("\"")) {
+                    val = val.substring(1, val.length() - 1).trim();
+                }
+                if (val.startsWith("'") && val.endsWith("'")) {
+                    val = val.substring(1, val.length() - 1).trim();
+                }
+                // Strip escaped newline representation '\n'
+                if (val.endsWith("\\n")) {
+                    val = val.substring(0, val.length() - 2).trim();
+                }
+                // Strip actual newline characters
+                val = val.replace("\n", "").replace("\r", "").trim();
+                
+                if (!val.equals(original)) {
+                    System.setProperty(key, val);
+                    System.out.println(">>> Sanitized env var: " + key + " (removed quotes/newlines)");
+                }
+            }
+        }
+
         SpringApplication.run(StudySyncApplication.class, args);
     }
 
