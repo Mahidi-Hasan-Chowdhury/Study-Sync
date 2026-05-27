@@ -5,14 +5,16 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
 [![Stripe](https://img.shields.io/badge/Stripe-Payments-626CD9?style=for-the-badge&logo=stripe&logoColor=white)](https://stripe.com/)
 
-**Study Sync** is a cutting-edge, AI-powered full-stack learning platform designed to revolutionize how students and educators interact with study materials. By leveraging local LLMs and modern web technologies, it transforms static documents into interactive, collaborative learning experiences.
+🌐 **Live Application**: [https://study-sync-vdln.onrender.com](https://study-sync-vdln.onrender.com)
+
+**Study Sync** is a cutting-edge, AI-powered full-stack learning platform designed to revolutionize how students and educators interact with study materials. By leveraging advanced cloud LLMs and modern web technologies, it transforms static documents into interactive, collaborative learning experiences.
 
 ---
 
 ## ✨ Key Features
 
 - 📄 **Smart Document Processing**: Automatically extract text from PDFs and Word documents using Apache PDFBox and POI.
-- 🤖 **AI-Powered Quiz Generation**: Seamlessly generate high-quality Multiple Choice Questions (MCQs) from your study materials using **Spring AI** and **Ollama** (local LLM).
+- 🤖 **AI-Powered Quiz Generation**: Seamlessly generate high-quality Multiple Choice Questions (MCQs) from your study materials using **Spring AI** and **Groq Cloud LLM** (`llama-3.3-70b-versatile`).
 - 👥 **Real-time Quiz Rooms**: Collaborate and compete with peers in real-time quiz rooms powered by WebSockets.
 - 💳 **Secure Payments**: Integrated **Stripe Checkout** for premium features and subscription management.
 - 🔐 **Robust Security**: Secure API endpoints with **JWT (JSON Web Tokens)** and role-based access control.
@@ -23,7 +25,7 @@
 ## 🛠️ Tech Stack
 
 - **Backend**: Java 25, Spring Boot 3.x
-- **AI Integration**: Spring AI + Ollama (Local LLM Support)
+- **AI Integration**: Spring AI + Groq (OpenAI-Compatible Starter)
 - **Database**: MongoDB Atlas (NoSQL)
 - **Security**: Spring Security, JWT (HS256)
 - **File Handling**: Apache PDFBox, Apache POI
@@ -37,7 +39,7 @@
 ### Prerequisites
 
 - **Java 25** installed.
-- **Ollama** installed and running locally (for AI features).
+- **Groq API Key** (for high-speed cloud AI features).
 - **MongoDB** instance (local or Atlas).
 - **Stripe Account** (for payment testing).
 
@@ -55,8 +57,7 @@
    MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/studysync
    STRIPE_PUBLIC_KEY=pk_test_your_public_key
    STRIPE_SECRET_KEY=sk_test_your_secret_key
-   OLLAMA_BASE_URL=http://localhost:11434
-   OLLAMA_MODEL=llama3 # or your preferred model
+   GROQ_API_KEY=gsk_your_groq_api_key
    ```
 
 3. **Run the Application**
@@ -73,7 +74,7 @@
 
 - **Zero-Secret Commitment**: Sensitive credentials are never committed to version control. All configuration is handled via environment variables.
 - **Data Protection**: User data and documents are handled with industry-standard security practices.
-- **Local AI**: By using Ollama, your study data stays private and is processed locally on your machine.
+- **High Performance**: Cloud processing ensures instant quiz generation without local hardware limitations.
 
 ---
 
@@ -96,4 +97,3 @@ Contributions are what make the open-source community such an amazing place to l
 ---
 
 *Developed with ❤️ as a part of the Advanced Java Course.*
-# Trigger redeploy
