@@ -22,6 +22,19 @@
 
 ---
 
+## 🏗️ System Architecture
+
+```mermaid
+graph TD
+    Client([Web Client / User]) <-->|REST API & WebSockets| App[Spring Boot Application]
+    App <-->|Store / Retrieve Data| DB[(MongoDB Atlas)]
+    App <-->|Generate MCQs| AI[Groq Cloud LLM]
+    App <-->|Process Payments| Stripe[Stripe API]
+    App -->|Extract Text| PDF[Apache PDFBox / POI]
+```
+
+---
+
 ## 🛠️ Tech Stack
 
 - **Backend**: Java 25, Spring Boot 3.x
