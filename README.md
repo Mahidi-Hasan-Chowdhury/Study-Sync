@@ -24,8 +24,6 @@
 
 ## 📸 Application Screenshots
 
-*(To display your images, save your screenshots to a `docs/screenshots` folder and the images will automatically appear below!)*
-
 | 📊 Dashboard & Progress | 🤖 AI Quiz Generation |
 | :---: | :---: |
 | <img src="docs/screenshots/dashboard.png" width="400" alt="Dashboard" /> | <img src="docs/screenshots/quiz_generation.png" width="400" alt="AI Quiz Generation" /> |
