@@ -22,6 +22,20 @@
 
 ---
 
+## 📸 Application Screenshots
+
+*(To display your images, save your screenshots to a `docs/screenshots` folder and the images will automatically appear below!)*
+
+| 📊 Dashboard & Progress | 🤖 AI Quiz Generation |
+| :---: | :---: |
+| <img src="docs/screenshots/dashboard.png" width="400" alt="Dashboard" /> | <img src="docs/screenshots/quiz_generation.png" width="400" alt="AI Quiz Generation" /> |
+
+| 👥 Live Quiz Room | 💳 Stripe Checkout | 🔐 Authentication |
+| :---: | :---: | :---: |
+| <img src="docs/screenshots/quiz_room.png" width="260" alt="Live Quiz Room" /> | <img src="docs/screenshots/stripe.png" width="260" alt="Stripe Checkout" /> | <img src="docs/screenshots/login.png" width="260" alt="Login" /> |
+
+---
+
 ## 🏗️ System Architecture
 
 ```mermaid
