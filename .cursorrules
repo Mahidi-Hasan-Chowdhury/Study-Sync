@@ -1,0 +1,17 @@
+# Study Sync - AI Developer Guidelines
+
+## Project Context
+- **Name:** Study Sync
+- **Stack:** Java 25, Spring Boot 3.x, Spring AI, MongoDB Atlas, WebSockets
+- **LLM Provider:** Groq (Llama-3.3-70b-versatile)
+
+## Architectural Rules
+1. **Zero Secrets:** Never hardcode credentials. Always use `@Value("${...}")` or `System.getenv()` mapping to the `.env` file.
+2. **DTO Isolation:** Always use DTOs for Request/Response bodies in REST controllers. Do not expose MongoDB Entities directly.
+3. **AI Integration:** When modifying `QuizAiService`, ensure the prompt strictly demands JSON output. Do not allow the LLM to return conversational text.
+4. **Error Handling:** Let the `@ControllerAdvice` handle exceptions. Do not return stack traces to the frontend.
+5. **WebSockets:** Ensure all messaging logic goes through the `SimpMessagingTemplate` for real-time quiz room synchronization.
+
+## Dependency Rules
+- Prefer native Spring integrations where possible.
+- If introducing a new library, check compatibility with Java 25.
