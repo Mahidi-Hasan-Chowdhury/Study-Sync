@@ -165,25 +165,7 @@
     <!-- Main JS -->
     <script th:src="@{/assets/js/main.js}"></script>
 
-    <!-- Password Toggle -->
-    <script>
-        document.querySelectorAll('.form-password-toggle').forEach(function (element) {
-            element.querySelector('.input-group-text').addEventListener('click', function () {
-                const input = element.querySelector('input');
-                const icon = this.querySelector('i');
 
-                if (input.type === 'password') {
-                    input.type = 'text';
-                    icon.classList.remove('bx-hide');
-                    icon.classList.add('bx-show');
-                } else {
-                    input.type = 'password';
-                    icon.classList.remove('bx-show');
-                    icon.classList.add('bx-hide');
-                }
-            });
-        });
-    </script>
 </body>
 
 </html>
