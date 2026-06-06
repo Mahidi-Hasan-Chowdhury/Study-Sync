@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Sync | Generate Quizzes from PDFs</title>
+    <meta property="og:title" content="Study Sync | Generate Quizzes from PDFs" />
+    <meta property="og:description" content="Upload your lecture notes and generate interactive quizzes instantly." />
+    <meta property="og:type" content="website" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- AOS Animation CSS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <style>
+        /* Smooth scrolling */
+        html { scroll-behavior: smooth; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            color: #1a1f36;
+            background-color: #f7fafc;
+            overflow-x: hidden;
+        }
+        
+        /* Minimalist Tech Navbar */
+        .navbar {
+            padding: 1.5rem 0;
+            background: transparent;
+            border-bottom: 1px solid transparent;
+            left: 0; right: 0; top: 0;
+            transition: padding 0.3s ease, background 0.3s ease, border-bottom-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .navbar.scrolled {
+            padding: 1rem 0;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom-color: rgba(229, 231, 235, 0.8);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02);
+        }
+        .navbar-brand { font-weight: 800; font-size: 1.4rem; color: #111827; letter-spacing: -0.5px; }
+        .navbar-brand span { color: #0066ff; }
+        .nav-signin-link {
+            color: #4b5563; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; transition: color 0.2s; margin-right: 1.5rem;
+        }
+        .nav-signin-link:hover { color: #111827; }
+
+        /* Buttons */
+        .btn-primary-custom {
+            background-color: #0066ff; color: white; font-weight: 600; padding: 0.875rem 2.5rem; border-radius: 6px; border: 1px solid #0066ff; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0, 102, 255, 0.15); position: relative; overflow: hidden;
+        }
+        .btn-primary-custom:hover {
+            background-color: #0052cc; border-color: #0052cc; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0, 102, 255, 0.25); color: white;
+        }
+        .btn-outline-custom {
+            background-color: white; color: #111827; font-weight: 600; padding: 0.875rem 2.5rem; border-radius: 6px; border: 1px solid #d1d5db; transition: all 0.3s ease;
+        }
+        .btn-outline-custom:hover { background-color: #f9fafb; border-color: #9ca3af; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.05);}
+
+        /* Shimmering Text Gradient Effect */
+        .text-gradient {
+            background: linear-gradient(to right, #0066ff, #38bdf8, #0066ff);
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: shine 3s linear infinite;
+        }
+        @keyframes shine { to { background-position: 200% center; } }
+
+        /* Hero Section with Interactive Spotlight */
+        .hero-section {
+            padding: 10rem 0 7rem; background: #ffffff; position: relative; overflow: hidden; min-height: 85vh; display: flex; align-items: center;
+            --mouse-x: 50%; --mouse-y: 50%;
+        }
+        .hero-section::before {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background-image: radial-gradient(#e5e7eb 1px, transparent 1px); background-size: 32px 32px; opacity: 0.5; z-index: 1; pointer-events: none;
+        }
+        .hero-section::after {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(0, 102, 255, 0.08), transparent 40%);
+            z-index: 1; pointer-events: none; transition: background 0.1s ease;
+        }
+
+        /* Ambient Glow Blobs */
+        .glow-blob {
+            position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.15; z-index: 0; pointer-events: none;
+        }
+        .blob-1 { width: 350px; height: 350px; background: #0066ff; top: 15%; right: 10%; animation: pulse-blob-1 12s infinite alternate; }
+        .blob-2 { width: 300px; height: 300px; background: #a855f7; bottom: 15%; left: 10%; animation: pulse-blob-2 15s infinite alternate; }
+        @keyframes pulse-blob-1 {
+            0% { transform: scale(1) translate(0px, 0px); }
+            100% { transform: scale(1.2) translate(40px, -20px); }
+        }
+        @keyframes pulse-blob-2 {
+            0% { transform: scale(1) translate(0px, 0px); }
+            100% { transform: scale(1.15) translate(-30px, 30px); }
+        }
+
+        /* Top Pill Badge */
+        .badge-container { margin-bottom: 1.5rem; position: relative; z-index: 2; }
+        .badge-pill {
+            display: inline-flex; align-items: center; gap: 8px; background: rgba(0, 102, 255, 0.06); border: 1px solid rgba(0, 102, 255, 0.15);
+            padding: 6px 14px; border-radius: 99px; font-size: 0.85rem; font-weight: 600; color: #0066ff; text-decoration: none; transition: all 0.2s;
+        }
+        .badge-pill:hover { background: rgba(0, 102, 255, 0.1); border-color: rgba(0, 102, 255, 0.25); transform: translateY(-1px); }
+        .badge-dot { width: 6px; height: 6px; background: #0066ff; border-radius: 50%; position: relative; }
+        .badge-dot::after {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0; border-radius: 50%;
+            border: 2px solid #0066ff; animation: pulse-dot 1.5s infinite;
+        }
+        @keyframes pulse-dot { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(3); opacity: 0; } }
+
+        .hero-title { font-size: 3.5rem; font-weight: 800; line-height: 1.15; letter-spacing: -1.5px; color: #111827; margin-bottom: 1.5rem; position: relative; z-index: 2;}
+        .hero-subtitle { font-size: 1.25rem; color: #4b5563; margin-bottom: 2.5rem; line-height: 1.6; position: relative; z-index: 2;}
+        .hero-content { position: relative; z-index: 2; }
+
+        /* Isometric UI Animations with Mouse Tilt */
+        .hero-visual {
+            position: relative; width: 100%; height: 440px; perspective: 1000px;
+            transform-style: preserve-3d; transition: transform 0.2s cubic-bezier(0.1, 0.8, 0.3, 1);
+        }
+        .ui-card-wrapper {
+            position: absolute; top: 50%; left: 50%; transform-style: preserve-3d;
+            transition: z-index 0.4s ease;
+        }
+        .ui-card-wrapper:hover {
+            z-index: 10 !important;
+        }
+        .wrapper-doc {
+            z-index: 1; margin-top: -130px; margin-left: -120px;
+            animation: float-base 6s ease-in-out infinite;
+        }
+        .wrapper-quiz {
+            z-index: 2; margin-top: -30px; margin-left: -240px;
+            animation: float-top 6s ease-in-out infinite;
+        }
+        .wrapper-leaderboard {
+            z-index: 3; margin-top: 40px; margin-left: 50px;
+            animation: float-leaderboard 6s ease-in-out infinite;
+        }
+
+        .ui-card {
+            position: relative; background: #ffffff; border-radius: 12px; padding: 1.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); border: 1px solid rgba(229, 231, 235, 0.5); transform-style: preserve-3d;
+            transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s ease, border-color 0.4s ease;
+        }
+        .ui-card:hover {
+            transform: translateZ(150px) scale(1.08) !important;
+            box-shadow: 0 35px 75px -10px rgba(0, 102, 255, 0.22) !important;
+            border-color: rgba(0, 102, 255, 0.45) !important;
+            cursor: pointer;
+        }
+        .doc-card {
+            width: 240px; height: 170px;
+        }
+        .skeleton-title { height: 12px; width: 60%; background: #e5e7eb; border-radius: 4px; margin-bottom: 16px; }
+        .skeleton-line { height: 8px; background: #f3f4f6; border-radius: 4px; margin-bottom: 8px; }
+        .progress-track { height: 5px; width: 100%; background: #f3f4f6; border-radius: 3px; margin-top: 15px; overflow: hidden; }
+        .progress-fill { height: 100%; background: #0066ff; width: 0%; animation: load-bar 4s ease-in-out infinite; }
+        
+        .quiz-card {
+            width: 270px; transform: translateZ(40px); background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.4);
+        }
+        .quiz-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+        .check-circle { width: 32px; height: 32px; background: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
+        .quiz-option { padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 8px; font-size: 0.85rem; color: #4b5563; transition: all 0.2s;}
+        .quiz-option:hover { border-color: #0066ff; transform: translateX(5px); }
+        .quiz-option.active { border-color: #0066ff; background: #eff6ff; color: #0052cc; font-weight: 600; }
+
+        /* Leaderboard Live Card */
+        .leaderboard-card {
+            width: 220px; transform: translateZ(40px);
+            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.5);
+            padding: 1rem; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.12);
+        }
+        .leaderboard-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .live-indicator { background: #ef4444; color: white; font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; animation: pulse-opacity 1s infinite alternate; }
+        .leaderboard-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; color: #4b5563; padding: 6px 0; border-bottom: 1px solid #f3f4f6; }
+        .leaderboard-row.gold { font-weight: 600; color: #111827; }
+        .leaderboard-row:last-child { border-bottom: none; }
+
+        @keyframes float-base {
+            0%, 100% { transform: rotateX(20deg) rotateY(-15deg) rotateZ(5deg) translateY(0px); }
+            50% { transform: rotateX(20deg) rotateY(-15deg) rotateZ(5deg) translateY(-15px); }
+        }
+        @keyframes float-top {
+            0%, 100% { transform: rotateX(20deg) rotateY(-15deg) rotateZ(5deg) translateY(0px); }
+            50% { transform: rotateX(20deg) rotateY(-15deg) rotateZ(5deg) translateY(-25px); }
+        }
+        @keyframes float-leaderboard {
+            0%, 100% { transform: rotateX(20deg) rotateY(-15deg) rotateZ(5deg) translateY(0px); }
+            50% { transform: rotateX(20deg) rotateY(-15deg) rotateZ(5deg) translateY(-10px); }
+        }
+        @keyframes load-bar { 0% { width: 0%; } 40% { width: 100%; } 100% { width: 100%; } }
+        @keyframes pulse-opacity { from { opacity: 0.6; } to { opacity: 1; } }
+
+
+        /* Features Sections */
+        .pipeline-section {
+            background: linear-gradient(to bottom, #ffffff, #f8fafc 50%, #ffffff);
+            padding: 8rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+        /* Glowing spectrum vertical line */
+        .pipeline-section::before {
+            content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 2px;
+            background: linear-gradient(to bottom, transparent, #0066ff 15%, #a855f7 50%, #10b981 85%, transparent);
+            transform: translateX(-50%); z-index: 0;
+        }
+        @media (max-width: 991px) { .pipeline-section::before { display: none; } }
+
+        .feature-deep-dive { padding: 5rem 0; position: relative; z-index: 1; }
+        
+        /* The connecting node in the center with custom colors */
+        .phase-node {
+            width: 48px; height: 48px; background: #ffffff; border: 4px solid #d1d5db; border-radius: 50%;
+            position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 3;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 1.25rem; transition: all 0.3s;
+        }
+        .phase-node.node-1 { border-color: #0066ff; color: #0066ff; box-shadow: 0 0 0 8px rgba(0, 102, 255, 0.05), 0 0 12px rgba(0, 102, 255, 0.1); }
+        .phase-node.node-2 { border-color: #a855f7; color: #a855f7; box-shadow: 0 0 0 8px rgba(168, 85, 247, 0.05), 0 0 12px rgba(168, 85, 247, 0.1); }
+        .phase-node.node-3 { border-color: #10b981; color: #10b981; box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.06), 0 0 12px rgba(16, 185, 129, 0.1); }
+        @media (max-width: 991px) { .phase-node { display: none; } }
+        
+        .feature-title { font-size: 2.5rem; font-weight: 800; letter-spacing: -1px; color: #111827; margin-bottom: 1.5rem; }
+        .feature-desc { font-size: 1.25rem; color: #4b5563; line-height: 1.7; }
+        
+        /* Glassmorphic Mockup Cards with Tilt hover */
+        .feature-mockup {
+            background: rgba(255, 255, 255, 0.65);
+            border: 1px solid rgba(229, 231, 235, 0.5);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
+            height: 380px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.02);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s ease, border-color 0.4s ease;
+        }
+        .feature-mockup:hover {
+            transform: translateY(-8px) scale(1.01);
+            box-shadow: 0 30px 60px rgba(0, 102, 255, 0.06);
+            border-color: rgba(0, 102, 255, 0.15);
+        }
+
+        /* Feature 1 Mockup (PDF Icon) */
+        .mockup-pdf { width: 120px; height: 160px; background: #fef2f2; border: 2px solid #ef4444; border-radius: 8px; position: relative; display: flex; align-items: center; justify-content: center; }
+        .mockup-pdf::after { content: "PDF"; color: #ef4444; font-weight: 800; font-size: 1.5rem; }
+        .scan-line { position: absolute; width: 100%; height: 2px; background: #0066ff; top: 0; box-shadow: 0 0 10px #0066ff; animation: scan 3s linear infinite; }
+        @keyframes scan { 0% { top: 0; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+
+        /* Feature 2 Mockup (List) */
+        .mockup-list { width: 70%; }
+        .mockup-item { height: 40px; background: #f3f4f6; border-radius: 6px; margin-bottom: 12px; display: flex; align-items: center; padding: 0 16px; transition: all 0.3s; }
+        .mockup-item::before { content: ""; width: 20px; height: 20px; border-radius: 50%; border: 2px solid #d1d5db; margin-right: 12px; transition: all 0.3s;}
+        .mockup-item:hover { transform: translateX(5px); cursor: pointer; }
+        .mockup-item.selected::before { border-color: #0066ff; background: #0066ff; box-shadow: inset 0 0 0 4px white; }
+
+        /* Feature 3 Mockup (Multiplayer) */
+        .mockup-avatars { display: flex; gap: -10px; justify-content: center; align-items: center;}
+        .mockup-avatar { width: 64px; height: 64px; border-radius: 50%; border: 4px solid white; background: #e5e7eb; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #9ca3af; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s; }
+        .mockup-avatar:hover { z-index: 10 !important; transform: translateY(-10px) scale(1.1) !important; box-shadow: 0 15px 25px rgba(0,0,0,0.15) !important;}
+        .mockup-avatar:nth-child(1) { background: #dbeafe; color: #2563eb; transform: translateX(20px); z-index: 1;}
+        .mockup-avatar:nth-child(2) { background: #dcfce7; color: #16a34a; z-index: 2; transform: scale(1.1); box-shadow: 0 10px 15px rgba(0,0,0,0.1);}
+        .mockup-avatar:nth-child(3) { background: #fef3c7; color: #d97706; transform: translateX(-20px); z-index: 1;}
+
+        /* Capsule CTA Section */
+        .cta-section {
+            padding: 8rem 0;
+            background: #ffffff;
+            position: relative;
+            overflow: hidden;
+        }
+        .cta-container {
+            background: #0f172a;
+            border-radius: 24px;
+            padding: 5.5rem 3rem;
+            color: white;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            max-width: 1140px;
+            margin: 0 auto;
+            box-shadow: 0 30px 60px rgba(15, 23, 42, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .cta-container::before {
+            content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle at center, rgba(0,102,255,0.12) 0%, transparent 60%);
+            animation: pulse-glow 10s infinite alternate;
+        }
+        @keyframes pulse-glow { 0% { transform: scale(1); } 100% { transform: scale(1.2); } }
+        .cta-container h2 { font-size: 2.75rem; font-weight: 800; margin-bottom: 1.25rem; letter-spacing: -1px; position: relative; z-index: 1;}
+        .cta-container p { color: #94a3b8; font-size: 1.25rem; margin-bottom: 2.5rem; max-width: 600px; margin-left: auto; margin-right: auto; position: relative; z-index: 1;}
+        .cta-btn-wrapper { position: relative; z-index: 1; display: inline-block;}
+
+        /* Premium Footer */
+        footer {
+            background-color: #ffffff;
+            padding: 4rem 0 2rem;
+            border-top: 1px solid rgba(229, 231, 235, 0.5);
+            position: relative;
+            z-index: 2;
+        }
+        .footer-links { list-style: none; padding: 0; }
+        .footer-links li { margin-bottom: 0.5rem; }
+        .footer-links a { color: #6b7280; text-decoration: none; transition: color 0.2s; }
+        .footer-links a:hover { color: #0066ff; }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg fixed-top" data-aos="fade-down" data-aos-duration="800">
+        <div class="container">
+            <a class="navbar-brand" href="/">Study<span>Sync.</span></a>
+            <div class="d-flex ms-auto align-items-center">
+                <a th:href="@{/login}" class="nav-signin-link">Sign In</a>
+                <a th:href="@{/register}" class="btn btn-primary-custom" style="padding: 0.5rem 1.5rem; font-size: 0.95rem; border-radius: 6px;">Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section" id="hero">
+        <div class="glow-blob blob-1"></div>
+        <div class="glow-blob blob-2"></div>
+        
+        <div class="container hero-content">
+            <div class="row align-items-center">
+                <!-- Left Text Column -->
+                <div class="col-lg-6 mb-5 mb-lg-0">
+                    <div class="badge-container" data-aos="fade-up" data-aos-duration="1000">
+                        <span class="badge-pill" style="cursor: default;">
+                            <span class="badge-dot"></span>
+                            <span class="badge-text">Real-time Multiplayer Rooms Live</span>
+                        </span>
+                    </div>
+                    <h1 class="hero-title" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="100">
+                        Generate Complete Quizzes from Your Course PDFs <span class="text-gradient">in Seconds.</span>
+                    </h1>
+                    <p class="hero-subtitle" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="200">
+                        Upload your lecture notes, slides, or syllabus. Study Sync instantly extracts the text and creates interactive, multiplayer quizzes for your entire classroom.
+                    </p>
+                    <div class="d-flex flex-wrap gap-3" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="300">
+                        <a th:href="@{/register}" class="btn btn-primary-custom btn-lg">Start Using Free</a>
+                    </div>
+                    
+                    <!-- Trust Indicators -->
+                    <div class="d-flex align-items-center gap-4 mt-4 text-muted" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="400">
+                        <div class="d-flex align-items-center gap-2">
+                            <svg class="text-success" width="16" height="16" fill="none" stroke="#10b981" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                            <span style="font-size: 0.85rem; font-weight: 500; color: #4b5563;">No credit card required</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <svg class="text-success" width="16" height="16" fill="none" stroke="#10b981" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                            <span style="font-size: 0.85rem; font-weight: 500; color: #4b5563;">Instant PDF upload</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Animation Column (Native CSS Isometric UI) -->
+                <div class="col-lg-6" data-aos="fade-left" data-aos-duration="1200" data-aos-delay="400">
+                    <div class="hero-visual">
+                        <!-- Card 1: Document Upload -->
+                        <div class="ui-card-wrapper wrapper-doc">
+                            <div class="ui-card doc-card">
+                                <div class="skeleton-title"></div>
+                                <div class="skeleton-line" style="width: 100%"></div>
+                                <div class="skeleton-line" style="width: 90%"></div>
+                                <div class="skeleton-line" style="width: 95%"></div>
+                                <div class="skeleton-line" style="width: 60%"></div>
+                                <div class="progress-track"><div class="progress-fill"></div></div>
+                                <div style="font-size: 0.75rem; color: #6b7280; margin-top: 8px; text-align: right;">Processing PDF...</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Card 2: Generated Quiz -->
+                        <div class="ui-card-wrapper wrapper-quiz">
+                            <div class="ui-card quiz-card">
+                                <div class="quiz-header">
+                                    <div class="check-circle">&#10003;</div>
+                                    <div><h5 style="margin: 0; font-weight: 700; font-size: 1rem; color: #111827;">Quiz Generated</h5><span style="font-size: 0.75rem; color: #6b7280;">10 Multiple Choice Questions</span></div>
+                                </div>
+                                <div class="quiz-option active">A. Join Multiplayer Room</div>
+                                <div class="quiz-option">B. Take Practice Test</div>
+                                <div class="quiz-option">C. Export as PDF</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Card 3: Live Multiplayer Leaderboard -->
+                        <div class="ui-card-wrapper wrapper-leaderboard">
+                            <div class="ui-card leaderboard-card">
+                                <div class="leaderboard-header">
+                                    <span class="live-indicator">LIVE</span>
+                                    <h6 style="margin: 0; font-weight: 700; font-size: 0.8rem; color: #111827;">Room Leaderboard</h6>
+                                </div>
+                                <div class="leaderboard-row gold">
+                                    <span>🥇 Alex M.</span>
+                                    <span>950 pts</span>
+                                </div>
+                                <div class="leaderboard-row">
+                                    <span>🥈 Sarah K.</span>
+                                    <span>880 pts</span>
+                                </div>
+                                <div class="leaderboard-row">
+                                    <span>🥉 You</span>
+                                    <span>820 pts</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Connected Features Section (No Anchor ID) -->
+    <div class="pipeline-section">
+        
+        <!-- Deep Dive Feature 1 (PDF Extraction) -->
+        <section class="feature-deep-dive">
+            <div class="container position-relative">
+                <div class="row align-items-center">
+                    <div class="phase-node node-1">1</div>
+                    <div class="col-lg-5 mb-5 mb-lg-0" data-aos="fade-right">
+                        <div style="color: #0066ff; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem;">Phase 1: Input</div>
+                        <h2 class="feature-title">Secure PDF Data Extraction</h2>
+                        <p class="feature-desc">Upload your heavy PDF lecture notes. Our backend safely extracts the core concepts in seconds without losing important context. We support multi-page curriculum documents and dense academic formatting.</p>
+                    </div>
+                    <div class="col-lg-5 offset-lg-2" data-aos="fade-left">
+                        <div class="feature-mockup">
+                            <div class="mockup-pdf">
+                                <div class="scan-line"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Deep Dive Feature 2 (Automated Quizzes) -->
+        <section class="feature-deep-dive">
+            <div class="container position-relative">
+                <div class="row align-items-center">
+                    <div class="phase-node node-2">2</div>
+                    <div class="col-lg-5 mb-5 mb-lg-0 order-2 order-lg-1" data-aos="fade-right">
+                        <div class="feature-mockup">
+                            <div class="mockup-list">
+                                <div class="skeleton-title" style="width: 80%; background: #d1d5db; margin-bottom: 20px;"></div>
+                                <div class="mockup-item"></div>
+                                <div class="mockup-item selected"></div>
+                                <div class="mockup-item"></div>
+                                <div class="mockup-item"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-5 offset-lg-2 order-1 order-lg-2 mb-5 mb-lg-0" data-aos="fade-left">
+                        <div style="color: #0066ff; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem;">Phase 2: Generation</div>
+                        <h2 class="feature-title">Automated Examination Logic</h2>
+                        <p class="feature-desc">Stop writing flashcards and exams by hand. Study Sync processes the extracted text and generates highly accurate, university-level multiple choice questions directly from your materials.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Deep Dive Feature 3 (Live Multiplayer) -->
+        <section class="feature-deep-dive">
+            <div class="container position-relative">
+                <div class="row align-items-center">
+                    <div class="phase-node node-3">3</div>
+                    <div class="col-lg-5 mb-5 mb-lg-0" data-aos="fade-right">
+                        <div style="color: #0066ff; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem;">Phase 3: Execution</div>
+                        <h2 class="feature-title">Live Multiplayer Classrooms</h2>
+                        <p class="feature-desc">Create a room code and invite your friends. Compete against your classmates in real-time to see who mastered the study material first. Features live scoring and synchronized progression.</p>
+                    </div>
+                    <div class="col-lg-5 offset-lg-2" data-aos="fade-left">
+                        <div class="feature-mockup">
+                            <div class="mockup-avatars">
+                                <div class="mockup-avatar">P1</div>
+                                <div class="mockup-avatar">You</div>
+                                <div class="mockup-avatar">P3</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-container" data-aos="zoom-in" data-aos-duration="1000">
+                <h2>Ready to ace your next exam?</h2>
+                <p>Join thousands of students turning their lecture notes into interactive assessments.</p>
+                <div class="cta-btn-wrapper">
+                    <a th:href="@{/register}" class="btn btn-primary-custom btn-lg" style="background: white; color: #0f172a; border: none;">Create Free Account</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row mb-4">
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h4 style="font-weight: 800; font-size: 1.25rem; color: #111827; letter-spacing: -0.5px;">Study<span style="color: #0066ff;">Sync.</span></h4>
+                    <p style="color: #6b7280; font-size: 0.875rem; margin-top: 1rem;">Generate examinations securely and instantly.</p>
+                </div>
+                <div class="col-md-2 offset-md-6 col-6">
+                    <h5 style="font-weight: 600; font-size: 1rem; color: #111827; margin-bottom: 1rem;">Legal</h5>
+                    <ul class="footer-links">
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="text-center pt-4 border-top" style="color: #9ca3af; font-size: 0.875rem;">
+                &copy; 2026 Study Sync. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- AOS Animation Scripts -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ once: false, offset: 50 });
+        
+        window.addEventListener('scroll', function() {
+            const nav = document.querySelector('.navbar');
+            if (window.scrollY > 10) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+
+        // Interactive Spotlight & Dynamic 3D Tilt Effect on Hero
+        const hero = document.getElementById('hero');
+        const heroVisual = document.querySelector('.hero-visual');
+        
+        hero.addEventListener('mousemove', e => {
+            const rect = hero.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            hero.style.setProperty('--mouse-x', `${x}px`);
+            hero.style.setProperty('--mouse-y', `${y}px`);
+            
+            // Calculate mouse position relative to center of hero section
+            const xPercent = (x / rect.width) - 0.5; // -0.5 to 0.5
+            const yPercent = (y / rect.height) - 0.5; // -0.5 to 0.5
+            
+            // Apply dynamic tilt to the hero visual container
+            if (heroVisual) {
+                // Keep tilt subtle (max 25 degrees)
+                const rotateY = xPercent * 25;
+                const rotateX = -yPercent * 25;
+                heroVisual.style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
+            }
+        });
+        
+        hero.addEventListener('mouseleave', () => {
+            hero.style.setProperty('--mouse-x', `50%`);
+            hero.style.setProperty('--mouse-y', `50%`);
+            if (heroVisual) {
+                heroVisual.style.transform = 'rotateY(0deg) rotateX(0deg)';
+            }
+        });
+    </script>
+</body>
+</html>
