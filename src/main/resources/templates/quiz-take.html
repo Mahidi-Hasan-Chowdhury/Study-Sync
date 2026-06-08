@@ -51,11 +51,17 @@
                     <div class="card">
                         <div class="card-body">
                             <h6 class="card-title">
-                                <span class="badge bg-primary me-2" th:text="'Question ' + ${iterStat.count}">Q1</span>
+                                <span class="badge me-2"
+                                      th:classappend="${question.questionType == 'CQ'} ? 'bg-info' : 'bg-primary'"
+                                      th:text="${question.questionType == 'CQ'} ? 'CQ ' + ${iterStat.count} : 'Q' + ${iterStat.count}">
+                                    Q1
+                                </span>
                                 <span th:text="${question.question}">Question text</span>
+                                <span class="badge bg-secondary ms-2" th:if="${question.questionType == 'CQ'}">Written Response</span>
                             </h6>
 
-                            <div class="mt-3">
+                            <div class="mt-3" th:if="${question.questionType == null or question.questionType == 'MCQ'}">
+                                <!-- MCQ Options -->
                                 <!-- Option A -->
                                 <div class="form-check mb-2">
                                     <input class="form-check-input" type="radio" th:name="${iterStat.count}"
@@ -91,6 +97,20 @@
                                         <strong>D.</strong> <span th:text="${question.optionD}">Option D</span>
                                     </label>
                                 </div>
+                            </div>
+
+                            <div class="mt-3" th:if="${question.questionType == 'CQ'}">
+                                <!-- CQ Text Area -->
+                                <label th:for="'cq' + ${iterStat.count}" class="form-label text-muted">
+                                    <i class="bx bx-edit"></i> Write your answer (2-4 sentences recommended)
+                                </label>
+                                <textarea class="form-control"
+                                          th:id="'cq' + ${iterStat.count}"
+                                          th:name="'cq_' + ${iterStat.count}"
+                                          rows="4"
+                                          placeholder="Type your answer here..."
+                                          required></textarea>
+                                <div class="form-text">Your answer will be graded by AI based on accuracy and completeness.</div>
                             </div>
                         </div>
                     </div>

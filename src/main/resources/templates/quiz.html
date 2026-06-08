@@ -27,7 +27,7 @@
                     </a>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted mb-4">Upload a study document and our AI will generate MCQ questions based on
+                    <p class="text-muted mb-4">Upload a study document and our AI will generate quiz questions based on
                         its
                         content.
                         <span class="badge bg-label-primary">Pro</span> users can also upload DOCX and PPTX up to 20MB.
@@ -40,6 +40,21 @@
                             <input type="file" class="form-control" id="pdfFile" name="pdfFile"
                                 accept=".pdf,.docx,.pptx" required>
                             <div class="form-text">PDF (5MB) for Free. PDF, DOCX, PPTX (20MB) for Pro.</div>
+                        </div>
+
+                        <!-- Quiz Type Selection -->
+                        <div class="mb-3">
+                            <label for="quizType" class="form-label">Quiz Type</label>
+                            <select class="form-select" id="quizType" name="quizType" required>
+                                <option value="MCQ" selected>Multiple Choice (MCQ)</option>
+                                <option value="CQ">Constructed Response (CQ)</option>
+                                <option value="MIXED">Mixed (MCQ + CQ)</option>
+                            </select>
+                            <div class="form-text">
+                                <strong>MCQ:</strong> Multiple choice questions (A, B, C, D)<br>
+                                <strong>CQ:</strong> Written response questions (AI-graded)<br>
+                                <strong>Mixed:</strong> Combination of both types
+                            </div>
                         </div>
 
                         <!-- Difficulty Selection -->
@@ -70,6 +85,7 @@
                             <i class="bx bx-time-five"></i>
                             <strong>Estimated Time:</strong>
                             <span id="timePreview">3 min 45 sec</span>
+                            <div class="form-text mt-1" id="timeNote">Based on selected difficulty and question type</div>
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100">
@@ -85,11 +101,14 @@
     <script>
         const difficultySelect = document.getElementById('difficulty');
         const questionCountInput = document.getElementById('questionCount');
+        const quizTypeSelect = document.getElementById('quizType');
         const timePreview = document.getElementById('timePreview');
+        const timeNote = document.getElementById('timeNote');
 
         function updateTimePreview() {
             const difficulty = difficultySelect.value;
             const questionCount = parseInt(questionCountInput.value) || 5;
+            const quizType = quizTypeSelect.value;
 
             let secondsPerQuestion;
             switch (difficulty) {
@@ -98,15 +117,33 @@
                 default: secondsPerQuestion = 45; // MEDIUM
             }
 
+            // CQ questions need 50% more time
+            if (quizType === 'CQ') {
+                secondsPerQuestion = Math.round(secondsPerQuestion * 1.5);
+            } else if (quizType === 'MIXED') {
+                // Mixed: average of MCQ and CQ time
+                secondsPerQuestion = Math.round(secondsPerQuestion * 1.25);
+            }
+
             const totalSeconds = questionCount * secondsPerQuestion;
             const minutes = Math.floor(totalSeconds / 60);
             const seconds = totalSeconds % 60;
 
             timePreview.textContent = minutes + ' min ' + seconds + ' sec';
+
+            // Update note based on quiz type
+            if (quizType === 'CQ') {
+                timeNote.textContent = 'More time allocated for written responses';
+            } else if (quizType === 'MIXED') {
+                timeNote.textContent = 'Combination of MCQ and written questions';
+            } else {
+                timeNote.textContent = 'Multiple choice questions';
+            }
         }
 
         difficultySelect.addEventListener('change', updateTimePreview);
         questionCountInput.addEventListener('input', updateTimePreview);
+        quizTypeSelect.addEventListener('change', updateTimePreview);
 
         // Initial update
         updateTimePreview();

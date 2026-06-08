@@ -11,7 +11,9 @@ import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -22,37 +24,102 @@ public class QuizAiService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public Quiz generateQuiz(String pdfText, String pdfFileName, String difficulty, int questionCount, String userId) {
+        return generateQuiz(pdfText, pdfFileName, difficulty, questionCount, userId, "MCQ");
+    }
+
+    public Quiz generateQuiz(String pdfText, String pdfFileName, String difficulty, int questionCount, String userId, String quizType) {
         try {
             // Parse difficulty
             QuizDifficulty quizDifficulty = QuizDifficulty.fromString(difficulty);
 
-            // Calculate time limit
+            // Calculate time limit (more time for CQ)
             int timeLimitSeconds = quizDifficulty.calculateTimeLimit(questionCount);
+            if ("CQ".equals(quizType) || "MIXED".equals(quizType)) {
+                timeLimitSeconds = (int) (timeLimitSeconds * 1.5); // 50% more time for written answers
+            }
 
-            // Build AI prompt
-            String prompt = buildMcqPrompt(pdfText, difficulty, questionCount);
+            List<Question> questions;
+            int mcqCount = 0;
+            int cqCount = 0;
 
-            // Call AI using OpenAIChatModel
-            String aiResponse = chatModel.call(prompt);
+            switch (quizType.toUpperCase()) {
+                case "CQ":
+                    questions = generateCqQuestions(pdfText, difficulty, questionCount);
+                    cqCount = questionCount;
+                    break;
+                case "MIXED":
+                    // Split questions evenly between MCQ and CQ
+                    mcqCount = questionCount / 2;
+                    cqCount = questionCount - mcqCount;
+                    questions = new ArrayList<>();
 
-            // Parse JSON response
-            List<Question> questions = parseAiResponse(aiResponse);
+                    // Generate MCQ questions
+                    questions.addAll(generateMcqQuestions(pdfText, difficulty, mcqCount));
+
+                    // Generate CQ questions
+                    questions.addAll(generateCqQuestions(pdfText, difficulty, cqCount));
+                    break;
+                case "MCQ":
+                default:
+                    questions = generateMcqQuestions(pdfText, difficulty, questionCount);
+                    mcqCount = questionCount;
+                    break;
+            }
 
             // Create Quiz object
             Quiz quiz = new Quiz();
             quiz.setPdfFileName(pdfFileName);
             quiz.setQuestions(questions);
+            quiz.setQuizType(quizType.toUpperCase());
             quiz.setDifficulty(difficulty.toUpperCase());
             quiz.setQuestionCount(questionCount);
+            quiz.setMcqCount(mcqCount);
+            quiz.setCqCount(cqCount);
             quiz.setTimeLimitSeconds(timeLimitSeconds);
             quiz.setCreatedAt(LocalDateTime.now());
             quiz.setExtractedText(pdfText.substring(0, Math.min(500, pdfText.length())));
-            quiz.setUserId(userId); // Set user ID
+            quiz.setUserId(userId);
 
             return quizRepository.save(quiz);
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to generate quiz: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Generate MCQ questions using AI
+     */
+    private List<Question> generateMcqQuestions(String pdfText, String difficulty, int questionCount) {
+        try {
+            String prompt = buildMcqPrompt(pdfText, difficulty, questionCount);
+            String aiResponse = chatModel.call(prompt);
+            List<Question> questions = parseAiResponse(aiResponse);
+
+            // Ensure question type is set
+            questions.forEach(q -> q.setQuestionType("MCQ"));
+
+            return questions;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate MCQ questions: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Generate CQ (Constructed Response) questions using AI
+     */
+    private List<Question> generateCqQuestions(String pdfText, String difficulty, int questionCount) {
+        try {
+            String prompt = buildCqPrompt(pdfText, difficulty, questionCount);
+            String aiResponse = chatModel.call(prompt);
+            List<Question> questions = parseCqResponse(aiResponse);
+
+            // Ensure question type is set
+            questions.forEach(q -> q.setQuestionType("CQ"));
+
+            return questions;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate CQ questions: " + e.getMessage(), e);
         }
     }
 
@@ -165,5 +232,82 @@ public class QuizAiService {
     public Quiz getQuizById(String id) {
         return quizRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Quiz not found with id: " + id));
+    }
+
+    /**
+     * Builds the AI prompt for CQ (Constructed Response) generation
+     */
+    private String buildCqPrompt(String pdfText, String difficulty, int questionCount) {
+        String difficultyInstructions = getDifficultyInstructions(difficulty);
+
+        return """
+                You are an expert quiz generator. Based ONLY on the following PDF content, generate EXACTLY %d constructed response questions (CQ) at %s difficulty level.
+
+                DIFFICULTY GUIDELINES:
+                %s
+
+                GENERAL RULES:
+                - Use ONLY information from the PDF content below
+                - Do NOT use external knowledge
+                - Each question should require a written answer of 2-4 sentences
+                - Questions should test understanding, analysis, and explanation skills
+                - Provide key points that should be included in the answer
+                - Provide a brief explanation of what constitutes a good answer
+                - Output MUST be valid JSON array
+                - Do NOT include any explanation or preamble
+                - Generate EXACTLY %d questions, no more, no less
+
+                OUTPUT FORMAT (JSON):
+                [
+                  {
+                    "question": "Question text here?",
+                    "correctAnswer": "Key points that should be covered in the answer",
+                    "answerExplanation": "Detailed explanation of what makes a good answer"
+                  }
+                ]
+
+                PDF CONTENT:
+                %s
+
+                Generate the %d CQs now as JSON array:
+                """.formatted(questionCount, difficulty, difficultyInstructions, questionCount, pdfText, questionCount);
+    }
+
+    /**
+     * Parses AI CQ JSON response to List of Questions
+     */
+    private List<Question> parseCqResponse(String aiResponse) throws Exception {
+        String cleanedResponse = aiResponse.trim();
+
+        int startIndex = cleanedResponse.indexOf('[');
+        int endIndex = cleanedResponse.lastIndexOf(']');
+
+        if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
+            cleanedResponse = cleanedResponse.substring(startIndex, endIndex + 1);
+        } else {
+            cleanedResponse = cleanedResponse
+                    .replace("```json", "")
+                    .replace("```", "")
+                    .trim();
+        }
+
+        List<Question> questions = new ArrayList<>();
+
+        // Use ObjectMapper to read as a list of maps
+        List<Map<String, Object>> rawQuestions = objectMapper.readValue(
+                cleanedResponse,
+                new TypeReference<List<Map<String, Object>>>() {}
+        );
+
+        for (Map<String, Object> rawQ : rawQuestions) {
+            Question q = new Question();
+            q.setQuestion((String) rawQ.get("question"));
+            q.setCorrectAnswer((String) rawQ.get("correctAnswer")); // Expected key points
+            q.setAnswerExplanation((String) rawQ.get("answerExplanation"));
+            q.setQuestionType("CQ");
+            questions.add(q);
+        }
+
+        return questions;
     }
 }

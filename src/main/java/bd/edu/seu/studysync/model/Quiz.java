@@ -19,6 +19,10 @@ public class Quiz {
     private String id;
     private String pdfFileName;
     private List<Question> questions;
+
+    // Quiz type: "MCQ", "CQ", "MIXED"
+    private String quizType; // "MCQ" (default), "CQ", "MIXED"
+
     // NEW: Difficulty level
     private String difficulty;  // "EASY", "MEDIUM", "HARD"
 
@@ -29,8 +33,12 @@ public class Quiz {
     private int timeLimitSeconds;
     private LocalDateTime createdAt;
     private String extractedText; // Store for reference (optional)
-    
+
     // NEW: User ID of the creator
     @Indexed
     private String userId;
+
+    // For mixed quizzes: number of MCQ vs CQ questions
+    private int mcqCount;
+    private int cqCount;
 }

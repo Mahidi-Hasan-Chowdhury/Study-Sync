@@ -53,16 +53,17 @@ public class QuizController {
     }
 
     /**
-     * UPDATED: Handle difficulty, question count, and PRO features
+     * UPDATED: Handle difficulty, question count, quiz type, and PRO features
      */
     @PostMapping("/upload")
     public String uploadFileAndGenerateQuiz(
             @RequestParam("pdfFile") MultipartFile file, // keeping param name as pdfFile for frontend compatibility, but it supports others
             @RequestParam("difficulty") String difficulty,
             @RequestParam("questionCount") int questionCount,
+            @RequestParam(value = "quizType", defaultValue = "MCQ") String quizType,
             RedirectAttributes redirectAttributes,
             Model model) {
-        
+
         Optional<User> currentUserOpt = userService.getCurrentUser();
         if (currentUserOpt.isEmpty()) {
             return "redirect:/login";
@@ -118,24 +119,36 @@ public class QuizController {
                 return "redirect:/quiz";
             }
 
+            // Validate quiz type
+            if (!quizType.matches("MCQ|CQ|MIXED")) {
+                redirectAttributes.addFlashAttribute("error", "Invalid quiz type. Must be MCQ, CQ, or MIXED");
+                return "redirect:/quiz";
+            }
+
             // Save File through DocumentService
             String savedFileName = documentService.saveFile(file);
 
             // Extract text
             String extractedText = documentService.extractText(savedFileName);
 
-            // Generate quiz
+            // Generate quiz with type
             Quiz quiz = quizAiService.generateQuiz(
                     extractedText,
                     file.getOriginalFilename(),
                     difficulty,
                     questionCount,
-                    currentUser.getId()
+                    currentUser.getId(),
+                    quizType
             );
 
             // Success message
+            String quizTypeDesc = switch (quizType.toUpperCase()) {
+                case "CQ" -> "Constructed Response";
+                case "MIXED" -> "Mixed (MCQ + CQ)";
+                default -> "Multiple Choice";
+            };
             redirectAttributes.addFlashAttribute("success",
-                    "Quiz generated successfully! " + questionCount + " questions at " + difficulty + " level.");
+                    "Quiz generated successfully! " + questionCount + " " + quizTypeDesc + " questions at " + difficulty + " level.");
             return "redirect:/quiz/my-quizzes";
 
         } catch (Exception e) {

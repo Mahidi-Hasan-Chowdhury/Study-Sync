@@ -80,26 +80,34 @@
 
         <div th:each="userAnswer, iterStat : ${attempt.userAnswers}" class="mb-3">
             <div class="card"
-                 th:classappend="${userAnswer.correct} ? 'border-success' : 'border-danger'">
+                 th:classappend="${userAnswer.questionType == 'CQ'} ? 'border-info' : (${userAnswer.correct} ? 'border-success' : 'border-danger')">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
                         <h6>
               <span class="badge me-2"
-                    th:classappend="${userAnswer.correct} ? 'bg-success' : 'bg-danger'"
-                    th:text="'Q' + ${userAnswer.questionNumber}">
+                    th:classappend="${userAnswer.questionType == 'CQ'} ? 'bg-info' : (${userAnswer.correct} ? 'bg-success' : 'bg-danger')"
+                    th:text="${userAnswer.questionType == 'CQ'} ? 'CQ ' + ${userAnswer.questionNumber} : 'Q' + ${userAnswer.questionNumber}">
                 Q1
               </span>
                             <span th:text="${userAnswer.question}">Question text</span>
                         </h6>
-                        <span th:if="${userAnswer.correct}" class="badge bg-success">
-              <i class="bx bx-check"></i> Correct
-            </span>
-                        <span th:if="${!userAnswer.correct}" class="badge bg-danger">
-              <i class="bx bx-x"></i> Wrong
-            </span>
+                        <div th:if="${userAnswer.questionType == 'CQ'}">
+                            <span class="badge bg-info">
+                                <i class="bx bx-edit"></i> Score: <span th:text="${#numbers.formatDecimal(userAnswer.cqScore * 100, 1, 0)} + '%'">75%</span>
+                            </span>
+                        </div>
+                        <div th:if="${userAnswer.questionType == null or userAnswer.questionType == 'MCQ'}">
+                            <span th:if="${userAnswer.correct}" class="badge bg-success">
+                  <i class="bx bx-check"></i> Correct
+                </span>
+                            <span th:if="${!userAnswer.correct}" class="badge bg-danger">
+                  <i class="bx bx-x"></i> Wrong
+              </span>
+                        </div>
                     </div>
 
-                    <div class="mt-3">
+                    <div class="mt-3" th:if="${userAnswer.questionType == null or userAnswer.questionType == 'MCQ'}">
+                        <!-- MCQ Answer Display -->
                         <p class="mb-1">
                             <strong>Your Answer:</strong>
                             <span th:classappend="${userAnswer.correct} ? 'text-success' : 'text-danger'"
@@ -111,6 +119,29 @@
                             <strong>Correct Answer:</strong>
                             <span class="text-success" th:text="${userAnswer.correctAnswer}">B</span>
                         </p>
+                    </div>
+
+                    <div class="mt-3" th:if="${userAnswer.questionType == 'CQ'}">
+                        <!-- CQ Answer Display -->
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <p class="mb-2">
+                                    <strong>Your Answer:</strong>
+                                </p>
+                                <p class="fst-italic text-muted mb-3" th:text="${userAnswer.textAnswer}">User's written answer...</p>
+
+                                <p class="mb-1">
+                                    <strong>Expected Key Points:</strong>
+                                </p>
+                                <p class="text-muted mb-3" th:text="${userAnswer.expectedAnswer}">Expected answer points...</p>
+
+                                <div th:if="${userAnswer.aiFeedback}" class="alert alert-info mb-0">
+                                    <i class="bx bx-comment-detail"></i>
+                                    <strong>AI Feedback:</strong>
+                                    <span th:text="${userAnswer.aiFeedback}">Feedback here...</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
