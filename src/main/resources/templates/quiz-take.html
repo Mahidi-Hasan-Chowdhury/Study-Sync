@@ -65,7 +65,7 @@
                                 <!-- Option A -->
                                 <div class="form-check mb-2">
                                     <input class="form-check-input" type="radio" th:name="${iterStat.count}"
-                                        th:id="'q' + ${iterStat.count} + 'a'" value="A" required>
+                                        th:id="'q' + ${iterStat.count} + 'a'" value="A">
                                     <label class="form-check-label" th:for="'q' + ${iterStat.count} + 'a'">
                                         <strong>A.</strong> <span th:text="${question.optionA}">Option A</span>
                                     </label>
@@ -74,7 +74,7 @@
                                 <!-- Option B -->
                                 <div class="form-check mb-2">
                                     <input class="form-check-input" type="radio" th:name="${iterStat.count}"
-                                        th:id="'q' + ${iterStat.count} + 'b'" value="B" required>
+                                        th:id="'q' + ${iterStat.count} + 'b'" value="B">
                                     <label class="form-check-label" th:for="'q' + ${iterStat.count} + 'b'">
                                         <strong>B.</strong> <span th:text="${question.optionB}">Option B</span>
                                     </label>
@@ -83,7 +83,7 @@
                                 <!-- Option C -->
                                 <div class="form-check mb-2">
                                     <input class="form-check-input" type="radio" th:name="${iterStat.count}"
-                                        th:id="'q' + ${iterStat.count} + 'c'" value="C" required>
+                                        th:id="'q' + ${iterStat.count} + 'c'" value="C">
                                     <label class="form-check-label" th:for="'q' + ${iterStat.count} + 'c'">
                                         <strong>C.</strong> <span th:text="${question.optionC}">Option C</span>
                                     </label>
@@ -92,7 +92,7 @@
                                 <!-- Option D -->
                                 <div class="form-check mb-2">
                                     <input class="form-check-input" type="radio" th:name="${iterStat.count}"
-                                        th:id="'q' + ${iterStat.count} + 'd'" value="D" required>
+                                        th:id="'q' + ${iterStat.count} + 'd'" value="D">
                                     <label class="form-check-label" th:for="'q' + ${iterStat.count} + 'd'">
                                         <strong>D.</strong> <span th:text="${question.optionD}">Option D</span>
                                     </label>
@@ -108,8 +108,7 @@
                                           th:id="'cq' + ${iterStat.count}"
                                           th:name="'cq_' + ${iterStat.count}"
                                           rows="4"
-                                          placeholder="Type your answer here..."
-                                          required></textarea>
+                                          placeholder="Type your answer here..."></textarea>
                                 <div class="form-text">Your answer will be graded by AI based on accuracy and completeness.</div>
                             </div>
                         </div>
