@@ -72,12 +72,29 @@
                             </div>
                         </div>
 
-                        <!-- Question Count -->
-                        <div class="mb-3">
-                            <label for="questionCount" class="form-label">Number of Questions</label>
-                            <input type="number" class="form-control" id="questionCount" name="questionCount" value="5"
-                                min="1" max="20" required>
-                            <div class="form-text">Choose between 1 and 20 questions</div>
+                        <!-- Question Counts -->
+                        <!-- MCQ Count -->
+                        <div class="mb-3" id="mcqCountDiv">
+                            <label for="mcqCount" class="form-label">Number of MCQ Questions</label>
+                            <input type="number" class="form-control" id="mcqCount" name="mcqCount" value="5"
+                                min="0" max="20" required>
+                            <div class="form-text">Choose between 0 and 20 MCQ questions</div>
+                        </div>
+
+                        <!-- CQ Count -->
+                        <div class="mb-3 d-none" id="cqCountDiv">
+                            <label for="cqCount" class="form-label">Number of CQ Questions</label>
+                            <input type="number" class="form-control" id="cqCount" name="cqCount" value="3"
+                                min="0" max="20" required>
+                            <div class="form-text">Choose between 0 and 20 CQ questions</div>
+                        </div>
+
+                        <!-- Total Questions Display -->
+                        <div class="alert alert-secondary mb-3">
+                            <i class="bx bx-layer"></i>
+                            <strong>Total Questions:</strong>
+                            <span id="totalQuestions">5</span>
+                            <span class="text-muted">(MCQ: <span id="mcqDisplay">5</span>, CQ: <span id="cqDisplay">0</span>)</span>
                         </div>
 
                         <!-- Time Preview -->
@@ -85,7 +102,7 @@
                             <i class="bx bx-time-five"></i>
                             <strong>Estimated Time:</strong>
                             <span id="timePreview">3 min 45 sec</span>
-                            <div class="form-text mt-1" id="timeNote">Based on selected difficulty and question type</div>
+                            <div class="form-text mt-1" id="timeNote">Based on selected difficulty and question counts</div>
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100">
@@ -97,56 +114,107 @@
         </div>
     </div>
 
-    <!-- JavaScript for Time Preview -->
+    <!-- JavaScript for Time Preview and Dynamic Fields -->
     <script>
         const difficultySelect = document.getElementById('difficulty');
-        const questionCountInput = document.getElementById('questionCount');
         const quizTypeSelect = document.getElementById('quizType');
+        const mcqCountInput = document.getElementById('mcqCount');
+        const cqCountInput = document.getElementById('cqCount');
+        const mcqCountDiv = document.getElementById('mcqCountDiv');
+        const cqCountDiv = document.getElementById('cqCountDiv');
         const timePreview = document.getElementById('timePreview');
         const timeNote = document.getElementById('timeNote');
+        const totalQuestions = document.getElementById('totalQuestions');
+        const mcqDisplay = document.getElementById('mcqDisplay');
+        const cqDisplay = document.getElementById('cqDisplay');
+
+        // Update visibility of input fields based on quiz type
+        function updateFieldVisibility() {
+            const quizType = quizTypeSelect.value;
+
+            if (quizType === 'MCQ') {
+                mcqCountDiv.classList.remove('d-none');
+                cqCountDiv.classList.add('d-none');
+                cqCountInput.required = false;
+                mcqCountInput.required = true;
+                // Set CQ to 0, MCQ to 5
+                cqCountInput.value = 0;
+                if (parseInt(mcqCountInput.value) === 0 || mcqCountInput.value === '') mcqCountInput.value = 5;
+            } else if (quizType === 'CQ') {
+                mcqCountDiv.classList.add('d-none');
+                cqCountDiv.classList.remove('d-none');
+                mcqCountInput.required = false;
+                cqCountInput.required = true;
+                // Set MCQ to 0, CQ to 3
+                mcqCountInput.value = 0;
+                if (parseInt(cqCountInput.value) === 0 || cqCountInput.value === '3' || cqCountInput.value === '') {
+                    cqCountInput.value = 3;
+                }
+            } else if (quizType === 'MIXED') {
+                mcqCountDiv.classList.remove('d-none');
+                cqCountDiv.classList.remove('d-none');
+                mcqCountInput.required = true;
+                cqCountInput.required = true;
+                // Default values for mixed: 3 MCQ, 2 CQ
+                if (parseInt(mcqCountInput.value) === 0 || mcqCountInput.value === '') mcqCountInput.value = 3;
+                if (parseInt(cqCountInput.value) === 0 || cqCountInput.value === '3' || cqCountInput.value === '') {
+                    cqCountInput.value = 2;
+                }
+            }
+
+            updateTimePreview();
+        }
 
         function updateTimePreview() {
             const difficulty = difficultySelect.value;
-            const questionCount = parseInt(questionCountInput.value) || 5;
-            const quizType = quizTypeSelect.value;
+            const mcqCount = parseInt(mcqCountInput.value) || 0;
+            const cqCount = parseInt(cqCountInput.value) || 0;
+            const total = mcqCount + cqCount;
 
-            let secondsPerQuestion;
+            // Update displays
+            totalQuestions.textContent = total;
+            mcqDisplay.textContent = mcqCount;
+            cqDisplay.textContent = cqCount;
+
+            // Calculate time
+            let secondsPerMcq, secondsPerCq;
             switch (difficulty) {
-                case 'EASY': secondsPerQuestion = 30; break;
-                case 'HARD': secondsPerQuestion = 60; break;
-                default: secondsPerQuestion = 45; // MEDIUM
+                case 'EASY':
+                    secondsPerMcq = 30;
+                    secondsPerCq = 45; // 1.5x for CQ
+                    break;
+                case 'HARD':
+                    secondsPerMcq = 60;
+                    secondsPerCq = 90; // 1.5x for CQ
+                    break;
+                default:
+                    secondsPerMcq = 45;
+                    secondsPerCq = 68; // ~1.5x for CQ
             }
 
-            // CQ questions need 50% more time
-            if (quizType === 'CQ') {
-                secondsPerQuestion = Math.round(secondsPerQuestion * 1.5);
-            } else if (quizType === 'MIXED') {
-                // Mixed: average of MCQ and CQ time
-                secondsPerQuestion = Math.round(secondsPerQuestion * 1.25);
-            }
-
-            const totalSeconds = questionCount * secondsPerQuestion;
+            const totalSeconds = (mcqCount * secondsPerMcq) + (cqCount * secondsPerCq);
             const minutes = Math.floor(totalSeconds / 60);
             const seconds = totalSeconds % 60;
 
             timePreview.textContent = minutes + ' min ' + seconds + ' sec';
 
-            // Update note based on quiz type
-            if (quizType === 'CQ') {
-                timeNote.textContent = 'More time allocated for written responses';
-            } else if (quizType === 'MIXED') {
-                timeNote.textContent = 'Combination of MCQ and written questions';
+            // Update note
+            if (cqCount > 0 && mcqCount > 0) {
+                timeNote.textContent = `${mcqCount} MCQ + ${cqCount} CQ questions`;
+            } else if (cqCount > 0) {
+                timeNote.textContent = 'All questions are written response';
             } else {
-                timeNote.textContent = 'Multiple choice questions';
+                timeNote.textContent = 'All questions are multiple choice';
             }
         }
 
         difficultySelect.addEventListener('change', updateTimePreview);
-        questionCountInput.addEventListener('input', updateTimePreview);
-        quizTypeSelect.addEventListener('change', updateTimePreview);
+        quizTypeSelect.addEventListener('change', updateFieldVisibility);
+        mcqCountInput.addEventListener('input', updateTimePreview);
+        cqCountInput.addEventListener('input', updateTimePreview);
 
-        // Initial update
-        updateTimePreview();
+        // Initial setup
+        updateFieldVisibility();
     </script>
 </div>
 

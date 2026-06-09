@@ -27,6 +27,52 @@ public class QuizAiService {
         return generateQuiz(pdfText, pdfFileName, difficulty, questionCount, userId, "MCQ");
     }
 
+    /**
+     * Generate quiz with explicit MCQ and CQ counts
+     */
+    public Quiz generateQuiz(String pdfText, String pdfFileName, String difficulty, int mcqCount, int cqCount, String userId, String quizType) {
+        try {
+            // Parse difficulty
+            QuizDifficulty quizDifficulty = QuizDifficulty.fromString(difficulty);
+            int totalQuestions = mcqCount + cqCount;
+
+            // Calculate time limit based on question types
+            int baseTimeLimit = quizDifficulty.calculateTimeLimit(totalQuestions);
+            int timeLimitSeconds = baseTimeLimit + (cqCount * 30); // Add 30 seconds per CQ question
+
+            List<Question> questions = new ArrayList<>();
+
+            // Generate MCQ questions if count > 0
+            if (mcqCount > 0) {
+                questions.addAll(generateMcqQuestions(pdfText, difficulty, mcqCount));
+            }
+
+            // Generate CQ questions if count > 0
+            if (cqCount > 0) {
+                questions.addAll(generateCqQuestions(pdfText, difficulty, cqCount));
+            }
+
+            // Create Quiz object
+            Quiz quiz = new Quiz();
+            quiz.setPdfFileName(pdfFileName);
+            quiz.setQuestions(questions);
+            quiz.setQuizType(quizType.toUpperCase());
+            quiz.setDifficulty(difficulty.toUpperCase());
+            quiz.setQuestionCount(totalQuestions);
+            quiz.setMcqCount(mcqCount);
+            quiz.setCqCount(cqCount);
+            quiz.setTimeLimitSeconds(timeLimitSeconds);
+            quiz.setCreatedAt(LocalDateTime.now());
+            quiz.setExtractedText(pdfText.substring(0, Math.min(500, pdfText.length())));
+            quiz.setUserId(userId);
+
+            return quizRepository.save(quiz);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate quiz: " + e.getMessage(), e);
+        }
+    }
+
     public Quiz generateQuiz(String pdfText, String pdfFileName, String difficulty, int questionCount, String userId, String quizType) {
         try {
             // Parse difficulty

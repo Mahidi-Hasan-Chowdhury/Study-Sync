@@ -53,13 +53,14 @@ public class QuizController {
     }
 
     /**
-     * UPDATED: Handle difficulty, question count, quiz type, and PRO features
+     * UPDATED: Handle difficulty, MCQ/CQ counts, quiz type, and PRO features
      */
     @PostMapping("/upload")
     public String uploadFileAndGenerateQuiz(
-            @RequestParam("pdfFile") MultipartFile file, // keeping param name as pdfFile for frontend compatibility, but it supports others
+            @RequestParam("pdfFile") MultipartFile file,
             @RequestParam("difficulty") String difficulty,
-            @RequestParam("questionCount") int questionCount,
+            @RequestParam(value = "mcqCount", defaultValue = "0") int mcqCount,
+            @RequestParam(value = "cqCount", defaultValue = "0") int cqCount,
             @RequestParam(value = "quizType", defaultValue = "MCQ") String quizType,
             RedirectAttributes redirectAttributes,
             Model model) {
@@ -113,15 +114,31 @@ public class QuizController {
                 return "redirect:/quiz";
             }
 
-            // Validate question count
-            if (questionCount < 1 || questionCount > 20) {
-                redirectAttributes.addFlashAttribute("error", "Question count must be between 1 and 20");
+            // Validate question counts based on quiz type
+            int totalQuestions = mcqCount + cqCount;
+
+            if (totalQuestions < 1 || totalQuestions > 20) {
+                redirectAttributes.addFlashAttribute("error", "Total questions must be between 1 and 20");
                 return "redirect:/quiz";
             }
 
-            // Validate quiz type
-            if (!quizType.matches("MCQ|CQ|MIXED")) {
-                redirectAttributes.addFlashAttribute("error", "Invalid quiz type. Must be MCQ, CQ, or MIXED");
+            // Validate counts are non-negative
+            if (mcqCount < 0 || cqCount < 0) {
+                redirectAttributes.addFlashAttribute("error", "Question counts cannot be negative");
+                return "redirect:/quiz";
+            }
+
+            // Validate quiz type matches counts
+            if ("MCQ".equals(quizType) && cqCount > 0) {
+                redirectAttributes.addFlashAttribute("error", "MCQ quiz type cannot have CQ questions");
+                return "redirect:/quiz";
+            }
+            if ("CQ".equals(quizType) && mcqCount > 0) {
+                redirectAttributes.addFlashAttribute("error", "CQ quiz type cannot have MCQ questions");
+                return "redirect:/quiz";
+            }
+            if ("MIXED".equals(quizType) && (mcqCount == 0 || cqCount == 0)) {
+                redirectAttributes.addFlashAttribute("error", "Mixed quiz must have both MCQ and CQ questions");
                 return "redirect:/quiz";
             }
 
@@ -131,12 +148,13 @@ public class QuizController {
             // Extract text
             String extractedText = documentService.extractText(savedFileName);
 
-            // Generate quiz with type
+            // Generate quiz with explicit counts
             Quiz quiz = quizAiService.generateQuiz(
                     extractedText,
                     file.getOriginalFilename(),
                     difficulty,
-                    questionCount,
+                    mcqCount,
+                    cqCount,
                     currentUser.getId(),
                     quizType
             );
@@ -144,11 +162,16 @@ public class QuizController {
             // Success message
             String quizTypeDesc = switch (quizType.toUpperCase()) {
                 case "CQ" -> "Constructed Response";
-                case "MIXED" -> "Mixed (MCQ + CQ)";
+                case "MIXED" -> "Mixed";
                 default -> "Multiple Choice";
             };
+            String countDesc = switch (quizType.toUpperCase()) {
+                case "CQ" -> cqCount + " written";
+                case "MIXED" -> mcqCount + " MCQ + " + cqCount + " CQ";
+                default -> mcqCount + " multiple choice";
+            };
             redirectAttributes.addFlashAttribute("success",
-                    "Quiz generated successfully! " + questionCount + " " + quizTypeDesc + " questions at " + difficulty + " level.");
+                    "Quiz generated successfully! " + countDesc + " questions at " + difficulty + " level.");
             return "redirect:/quiz/my-quizzes";
 
         } catch (Exception e) {
