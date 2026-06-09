@@ -51,8 +51,8 @@
                                 <option value="MIXED">Mixed (MCQ + CQ)</option>
                             </select>
                             <div class="form-text">
-                                <strong>MCQ:</strong> Multiple choice questions (A, B, C, D)<br>
-                                <strong>CQ:</strong> Written response questions (AI-graded)<br>
+                                <strong>MCQ:</strong> Multiple choice - Quick to answer (30-60s each)<br>
+                                <strong>CQ:</strong> Written response - More time needed (2-3min each)<br>
                                 <strong>Mixed:</strong> Combination of both types
                             </div>
                         </div>
@@ -61,14 +61,14 @@
                         <div class="mb-3">
                             <label for="difficulty" class="form-label">Difficulty Level</label>
                             <select class="form-select" id="difficulty" name="difficulty" required>
-                                <option value="EASY">Easy (30 sec/question)</option>
-                                <option value="MEDIUM" selected>Medium (45 sec/question)</option>
-                                <option value="HARD">Hard (60 sec/question)</option>
+                                <option value="EASY">Easy</option>
+                                <option value="MEDIUM" selected>Medium</option>
+                                <option value="HARD">Hard</option>
                             </select>
                             <div class="form-text">
-                                <strong>Easy:</strong> Basic recall questions<br>
-                                <strong>Medium:</strong> Understanding & comprehension<br>
-                                <strong>Hard:</strong> Analysis & application
+                                <strong>Easy:</strong> Basic recall | MCQ: 30s, CQ: 2min<br>
+                                <strong>Medium:</strong> Understanding | MCQ: 45s, CQ: 2.5min<br>
+                                <strong>Hard:</strong> Analysis | MCQ: 60s, CQ: 3min
                             </div>
                         </div>
 
@@ -176,20 +176,20 @@
             mcqDisplay.textContent = mcqCount;
             cqDisplay.textContent = cqCount;
 
-            // Calculate time
+            // Calculate time - NEW logic matching backend
             let secondsPerMcq, secondsPerCq;
             switch (difficulty) {
                 case 'EASY':
-                    secondsPerMcq = 30;
-                    secondsPerCq = 45; // 1.5x for CQ
+                    secondsPerMcq = 30;  // Easy MCQ
+                    secondsPerCq = 120; // 2 min for easy CQ
                     break;
                 case 'HARD':
-                    secondsPerMcq = 60;
-                    secondsPerCq = 90; // 1.5x for CQ
+                    secondsPerMcq = 60;  // Hard MCQ
+                    secondsPerCq = 180; // 3 min for hard CQ
                     break;
-                default:
-                    secondsPerMcq = 45;
-                    secondsPerCq = 68; // ~1.5x for CQ
+                default: // MEDIUM
+                    secondsPerMcq = 45;  // Medium MCQ
+                    secondsPerCq = 150; // 2.5 min for medium CQ
             }
 
             const totalSeconds = (mcqCount * secondsPerMcq) + (cqCount * secondsPerCq);
@@ -198,13 +198,17 @@
 
             timePreview.textContent = minutes + ' min ' + seconds + ' sec';
 
-            // Update note
+            // Update note with time breakdown
             if (cqCount > 0 && mcqCount > 0) {
-                timeNote.textContent = `${mcqCount} MCQ + ${cqCount} CQ questions`;
+                const mcqTime = Math.round((mcqCount * secondsPerMcq) / 60);
+                const cqTime = Math.round((cqCount * secondsPerCq) / 60);
+                timeNote.textContent = `${mcqCount} MCQ (~${mcqTime} min) + ${cqCount} CQ (~${cqTime} min)`;
             } else if (cqCount > 0) {
-                timeNote.textContent = 'All questions are written response';
+                const cqTime = Math.round((cqCount * secondsPerCq) / 60);
+                timeNote.textContent = `${cqCount} written response questions (~${cqTime} min)`;
             } else {
-                timeNote.textContent = 'All questions are multiple choice';
+                const mcqTime = Math.round((mcqCount * secondsPerMcq) / 60);
+                timeNote.textContent = `${mcqCount} multiple choice questions (~${mcqTime} min)`;
             }
         }
 

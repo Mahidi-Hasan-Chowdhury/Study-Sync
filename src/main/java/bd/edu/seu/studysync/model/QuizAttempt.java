@@ -27,8 +27,14 @@ public class QuizAttempt {
 
     private List<UserAnswer> userAnswers;   // User's answers
     private int totalQuestions;             // 5
-    private int correctAnswers;             // 0-5
+    private int correctAnswers;             // 0-5 (fully correct)
+    private int partialAnswers;             // 0-5 (partial credit)
+    private int wrongAnswers;               // 0-5 (incorrect)
     private double scorePercentage;         // 0-100
+
+    // NEW: Total marks earned and possible
+    private int totalMarksEarned;           // Total points earned
+    private int totalMarksPossible;         // Total possible points
 
     private int timeTakenSeconds;           // Time spent on quiz
     private LocalDateTime attemptedAt;      // When quiz was taken

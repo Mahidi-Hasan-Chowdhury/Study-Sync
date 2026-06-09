@@ -36,9 +36,25 @@ public class QuizAiService {
             QuizDifficulty quizDifficulty = QuizDifficulty.fromString(difficulty);
             int totalQuestions = mcqCount + cqCount;
 
-            // Calculate time limit based on question types
-            int baseTimeLimit = quizDifficulty.calculateTimeLimit(totalQuestions);
-            int timeLimitSeconds = baseTimeLimit + (cqCount * 30); // Add 30 seconds per CQ question
+            // Calculate time limit separately for MCQ and CQ
+            // MCQ: 30/45/60 seconds per question based on difficulty
+            // CQ: 2/2.5/3 minutes per question (writing takes much longer!)
+            int mcqTimeSeconds = mcqCount * quizDifficulty.getSecondsPerQuestion();
+
+            int cqSecondsPerQuestion;
+            switch (difficulty.toUpperCase()) {
+                case "EASY":
+                    cqSecondsPerQuestion = 120; // 2 minutes for easy CQ
+                    break;
+                case "HARD":
+                    cqSecondsPerQuestion = 180; // 3 minutes for hard CQ
+                    break;
+                default:
+                    cqSecondsPerQuestion = 150; // 2.5 minutes for medium CQ
+            }
+
+            int cqTimeSeconds = cqCount * cqSecondsPerQuestion;
+            int timeLimitSeconds = mcqTimeSeconds + cqTimeSeconds;
 
             List<Question> questions = new ArrayList<>();
 
@@ -78,12 +94,6 @@ public class QuizAiService {
             // Parse difficulty
             QuizDifficulty quizDifficulty = QuizDifficulty.fromString(difficulty);
 
-            // Calculate time limit (more time for CQ)
-            int timeLimitSeconds = quizDifficulty.calculateTimeLimit(questionCount);
-            if ("CQ".equals(quizType) || "MIXED".equals(quizType)) {
-                timeLimitSeconds = (int) (timeLimitSeconds * 1.5); // 50% more time for written answers
-            }
-
             List<Question> questions;
             int mcqCount = 0;
             int cqCount = 0;
@@ -111,6 +121,24 @@ public class QuizAiService {
                     mcqCount = questionCount;
                     break;
             }
+
+            // Calculate time limit separately for MCQ and CQ
+            int mcqTimeSeconds = mcqCount * quizDifficulty.getSecondsPerQuestion();
+
+            int cqSecondsPerQuestion;
+            switch (difficulty.toUpperCase()) {
+                case "EASY":
+                    cqSecondsPerQuestion = 120; // 2 minutes for easy CQ
+                    break;
+                case "HARD":
+                    cqSecondsPerQuestion = 180; // 3 minutes for hard CQ
+                    break;
+                default:
+                    cqSecondsPerQuestion = 150; // 2.5 minutes for medium CQ
+            }
+
+            int cqTimeSeconds = cqCount * cqSecondsPerQuestion;
+            int timeLimitSeconds = mcqTimeSeconds + cqTimeSeconds;
 
             // Create Quiz object
             Quiz quiz = new Quiz();
@@ -177,37 +205,36 @@ public class QuizAiService {
 
         return """
                 You are an expert quiz generator. Based ONLY on the following PDF content, generate EXACTLY %d multiple-choice questions (MCQs) at %s difficulty level.
-                
+
                 DIFFICULTY GUIDELINES:
                 %s
-                
-                GENERAL RULES:
-                - Use ONLY information from the PDF content below
-                - Do NOT use external knowledge
-                - Each question must have 4 options (A, B, C, D)
-                - Each question must have exactly ONE correct answer
-                - Questions should be interview-oriented and test understanding
-                - Output MUST be valid JSON array
-                - Do NOT include any explanation or preamble
-                - Generate EXACTLY %d questions, no more, no less
-                
+
+                CRITICAL CONSTRAINTS - READ CAREFULLY:
+                - EVERY part of your questions (question, options, correct answer) MUST come from the PDF content below
+                - Do NOT use external knowledge, business concepts, or common sense not found in the text
+                - Do NOT introduce concepts, examples, or factors that are not explicitly mentioned in the PDF
+                - If the PDF does not cover a topic, do NOT ask about it
+                - If the PDF is brief/simple, your questions should also be brief/simple
+                - The correct answer MUST be directly supported by the PDF text
+                - Wrong options can be plausible but must not require outside knowledge to identify as wrong
+
                 OUTPUT FORMAT (JSON):
                 [
                   {
-                    "question": "Question text here?",
-                    "optionA": "First option",
-                    "optionB": "Second option",
-                    "optionC": "Third option",
-                    "optionD": "Fourth option",
+                    "question": "Question text here (must be answerable from PDF)?",
+                    "optionA": "First option from PDF content",
+                    "optionB": "Second option from PDF content",
+                    "optionC": "Third option from PDF content",
+                    "optionD": "Fourth option from PDF content",
                     "correctAnswer": "A"
                   }
                 ]
-                
+
                 PDF CONTENT:
                 %s
-                
+
                 Generate the %d MCQs now as JSON array:
-                """.formatted(questionCount, difficulty, difficultyInstructions, questionCount, pdfText, questionCount);
+                """.formatted(questionCount, difficulty, difficultyInstructions, pdfText, questionCount);
     }
 
     /**
@@ -292,23 +319,21 @@ public class QuizAiService {
                 DIFFICULTY GUIDELINES:
                 %s
 
-                GENERAL RULES:
-                - Use ONLY information from the PDF content below
-                - Do NOT use external knowledge
-                - Each question should require a written answer of 2-4 sentences
-                - Questions should test understanding, analysis, and explanation skills
-                - Provide key points that should be included in the answer
-                - Provide a brief explanation of what constitutes a good answer
-                - Output MUST be valid JSON array
-                - Do NOT include any explanation or preamble
-                - Generate EXACTLY %d questions, no more, no less
+                CRITICAL CONSTRAINTS - READ CAREFULLY:
+                - EVERY part of your questions and model answers MUST come from the PDF content below
+                - Do NOT use external knowledge, business concepts, or common sense not found in the text
+                - Do NOT introduce factors, considerations, or examples not explicitly mentioned in the PDF
+                - If the PDF does not cover a topic, do NOT ask about it
+                - If the PDF is brief, your questions and model answers should be brief
+                - The model answer must ONLY contain information from the PDF
+                - When creating "what if" or application questions, base them ONLY on concepts/examples in the PDF
 
                 OUTPUT FORMAT (JSON):
                 [
                   {
-                    "question": "Question text here?",
-                    "correctAnswer": "Key points that should be covered in the answer",
-                    "answerExplanation": "Detailed explanation of what makes a good answer"
+                    "question": "Question text here (must be answerable from PDF content)?",
+                    "correctAnswer": "The complete model answer using ONLY information from the PDF. Do not add external knowledge.",
+                    "answerExplanation": "Brief rubric: What earns 3 points (correct/good), 2 points (partial), 1 point (attempted), 0 points (wrong)."
                   }
                 ]
 
@@ -316,7 +341,7 @@ public class QuizAiService {
                 %s
 
                 Generate the %d CQs now as JSON array:
-                """.formatted(questionCount, difficulty, difficultyInstructions, questionCount, pdfText, questionCount);
+                """.formatted(questionCount, difficulty, difficultyInstructions, pdfText, questionCount);
     }
 
     /**

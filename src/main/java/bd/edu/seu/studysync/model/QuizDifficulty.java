@@ -13,7 +13,13 @@ public enum QuizDifficulty {
         this.secondsPerQuestion = secondsPerQuestion;
     }
 
+    public String getDisplayName() {
+        return displayName;
+    }
 
+    public int getSecondsPerQuestion() {
+        return secondsPerQuestion;
+    }
 
     /**
      * Calculate total time limit based on number of questions

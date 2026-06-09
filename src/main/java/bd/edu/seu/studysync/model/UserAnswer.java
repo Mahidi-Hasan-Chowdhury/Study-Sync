@@ -16,10 +16,11 @@ public class UserAnswer {
     private String correctAnswer;    // "A", "B", "C", "D"
     private boolean isCorrect;       // true/false
 
-    // For CQ questions
+    // For CQ questions - Points-based scoring (out of 5)
     private String textAnswer;       // User's written answer
-    private String expectedAnswer;   // Expected key points
-    private double cqScore;          // AI-graded score for CQ (0.0 to 1.0)
+    private String expectedAnswer;   // Model answer from PDF
+    private Integer pointsEarned;    // Points earned (0-5) - Integer to allow null
+    private Integer maxPoints;       // Max points (5 for CQ, 1 for MCQ) - Integer to allow null
     private String aiFeedback;       // AI-generated feedback
 
     private String question;         // Question text (for display)
@@ -32,6 +33,8 @@ public class UserAnswer {
         this.isCorrect = isCorrect;
         this.question = question;
         this.questionType = "MCQ";
-        this.cqScore = isCorrect ? 1.0 : 0.0;
+        // MCQ questions are worth 1 point each
+        this.pointsEarned = isCorrect ? 1 : 0;
+        this.maxPoints = 1;
     }
 }

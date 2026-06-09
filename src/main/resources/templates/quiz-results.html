@@ -45,17 +45,21 @@
                 <h4>Your Score</h4>
 
                 <div class="row mt-4">
-                    <div class="col-md-4">
-                        <h5 class="text-success" th:text="${attempt.correctAnswers}">4</h5>
-                        <p class="text-muted">Correct Answers</p>
+                    <div class="col-md-3 col-6">
+                        <h5 class="text-primary" th:text="${attempt.totalMarksEarned} + '/' + ${attempt.totalMarksPossible}">7/11</h5>
+                        <p class="text-muted small">Total Marks</p>
                     </div>
-                    <div class="col-md-4">
-                        <h5 class="text-danger" th:text="${attempt.totalQuestions - attempt.correctAnswers}">1</h5>
-                        <p class="text-muted">Wrong Answers</p>
+                    <div class="col-md-3 col-6">
+                        <h5 class="text-success" th:text="${attempt.correctAnswers}">2</h5>
+                        <p class="text-muted small">Correct</p>
                     </div>
-                    <div class="col-md-4">
-                        <h5 class="text-primary" th:text="${attempt.timeTakenSeconds} + 's'">120s</h5>
-                        <p class="text-muted">Time Taken</p>
+                    <div class="col-md-3 col-6">
+                        <h5 class="text-warning" th:text="${attempt.partialAnswers}">3</h5>
+                        <p class="text-muted small">Partial</p>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <h5 class="text-danger" th:text="${attempt.wrongAnswers}">0</h5>
+                        <p class="text-muted small">Wrong</p>
                     </div>
                 </div>
 
@@ -80,20 +84,25 @@
 
         <div th:each="userAnswer, iterStat : ${attempt.userAnswers}" class="mb-3">
             <div class="card"
-                 th:classappend="${userAnswer.questionType == 'CQ'} ? 'border-info' : (${userAnswer.correct} ? 'border-success' : 'border-danger')">
+                 th:classappend="${userAnswer.questionType == 'CQ'} ? (${userAnswer.pointsEarned >= 3} ? 'border-success' : (${userAnswer.pointsEarned >= 1} ? 'border-warning' : 'border-danger')) : (${userAnswer.correct} ? 'border-success' : 'border-danger')">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
                         <h6>
               <span class="badge me-2"
-                    th:classappend="${userAnswer.questionType == 'CQ'} ? 'bg-info' : (${userAnswer.correct} ? 'bg-success' : 'bg-danger')"
+                    th:classappend="${userAnswer.questionType == 'CQ'} ? (${userAnswer.pointsEarned >= 3} ? 'bg-success' : (${userAnswer.pointsEarned >= 1} ? 'bg-warning text-dark' : 'bg-danger')) : (${userAnswer.correct} ? 'bg-success' : 'bg-danger')"
                     th:text="${userAnswer.questionType == 'CQ'} ? 'CQ ' + ${userAnswer.questionNumber} : 'Q' + ${userAnswer.questionNumber}">
                 Q1
               </span>
                             <span th:text="${userAnswer.question}">Question text</span>
                         </h6>
                         <div th:if="${userAnswer.questionType == 'CQ'}">
-                            <span class="badge bg-info">
-                                <i class="bx bx-edit"></i> Score: <span th:text="${#numbers.formatDecimal(userAnswer.cqScore * 100, 1, 0)} + '%'">75%</span>
+                            <span class="badge"
+                                  th:classappend="${userAnswer.pointsEarned >= 3} ? 'bg-success' : (${userAnswer.pointsEarned >= 1} ? 'bg-warning text-dark' : 'bg-danger')">
+                                <i class="bx bx-edit"></i> <span th:text="${userAnswer.pointsEarned} + '/' + ${userAnswer.maxPoints}">2/3</span> points
+                                <span th:if="${userAnswer.pointsEarned == 3}"> - Correct!</span>
+                                <span th:if="${userAnswer.pointsEarned == 2}"> - Partial</span>
+                                <span th:if="${userAnswer.pointsEarned == 1}"> - Attempted</span>
+                                <span th:if="${userAnswer.pointsEarned == 0}"> - Incorrect</span>
                             </span>
                         </div>
                         <div th:if="${userAnswer.questionType == null or userAnswer.questionType == 'MCQ'}">
@@ -135,10 +144,15 @@
                                 </p>
                                 <p class="text-muted mb-3" th:text="${userAnswer.expectedAnswer}">Expected answer points...</p>
 
-                                <div th:if="${userAnswer.aiFeedback}" class="alert alert-info mb-0">
+                                <div th:if="${userAnswer.aiFeedback != null and !userAnswer.aiFeedback.isEmpty()}" class="alert alert-info mb-0">
                                     <i class="bx bx-comment-detail"></i>
                                     <strong>AI Feedback:</strong>
                                     <span th:text="${userAnswer.aiFeedback}">Feedback here...</span>
+                                </div>
+                                <div th:if="${userAnswer.aiFeedback == null or userAnswer.aiFeedback.isEmpty()}" class="alert alert-secondary mb-0">
+                                    <i class="bx bx-info-circle"></i>
+                                    <strong>No AI feedback available.</strong>
+                                    <span class="text-muted">The feedback generation could not be processed for this answer.</span>
                                 </div>
                             </div>
                         </div>
