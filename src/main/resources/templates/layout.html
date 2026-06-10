@@ -144,11 +144,23 @@
           </a>
         </li>
 
+        <!-- Classroom Management -->
+        <li class="menu-header small text-uppercase">
+          <span class="menu-header-text">Classroom</span>
+        </li>
+
+        <li class="menu-item" th:classappend="${contentPage == 'classrooms' or contentPage == 'classroom-create' or contentPage == 'classroom-join' or contentPage == 'classroom-details'} ? 'active'">
+          <a th:href="@{/classroom}" class="menu-link">
+            <i class="menu-icon tf-icons bx bx-book-reader"></i>
+            <div data-i18n="Classrooms">My Classrooms</div>
+          </a>
+        </li>
+
         <!-- Quiz Management -->
         <li class="menu-header small text-uppercase">
           <span class="menu-header-text">Quiz Management</span>
         </li>
-        
+
         <li class="menu-item" th:classappend="${contentPage == 'quiz'} ? 'active'">
           <a th:href="@{/quiz}" class="menu-link">
             <i class="menu-icon tf-icons bx bx-plus-circle"></i>
@@ -169,7 +181,7 @@
             <div data-i18n="History">My Attempts</div>
           </a>
         </li>
-        
+
         <li class="menu-item" th:classappend="${contentPage == 'room-dashboard' or contentPage == 'room-details'} ? 'active'">
           <a th:href="@{/room}" class="menu-link">
             <i class="menu-icon tf-icons bx bx-group"></i>

@@ -1,5 +1,6 @@
 package bd.edu.seu.studysync.security;
 
+import bd.edu.seu.studysync.model.UserRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -15,15 +16,15 @@ public class JwtService {
     // Secret key must be at least 256 bits (32 characters) for HS256
     private final byte[] JWT_SECRET = "StudySyncSecretKey123456789012345678901234567890".getBytes(StandardCharsets.UTF_8);
     private final SecretKey JWT_SECRET_KEY = Keys.hmacShaKeyFor(JWT_SECRET);
-    
+
     // Token expiration: 24 hours
     private final long EXPIRATION_TIME = 86400000; // 24 hours in milliseconds
-    
+
     /**
-     * Generate JWT token for a user
+     * Generate JWT token for a user with UserRole enum
      */
-    public String generateToken(String username, String role) {
-        Map<String, String> payload = Map.of("role", role);
+    public String generateToken(String username, UserRole role) {
+        Map<String, String> payload = Map.of("role", role.name());
         return Jwts.builder()
                 .subject(username)
                 .claims(payload)
@@ -31,6 +32,26 @@ public class JwtService {
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(JWT_SECRET_KEY)
                 .compact();
+    }
+
+    /**
+     * Generate JWT token for a user (backward compatibility with String)
+     */
+    public String generateToken(String username, String role) {
+        try {
+            UserRole userRole = UserRole.valueOf(role);
+            return generateToken(username, userRole);
+        } catch (IllegalArgumentException e) {
+            // Fallback for old string-based roles
+            Map<String, String> payload = Map.of("role", role);
+            return Jwts.builder()
+                    .subject(username)
+                    .claims(payload)
+                    .issuedAt(new Date())
+                    .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                    .signWith(JWT_SECRET_KEY)
+                    .compact();
+        }
     }
     
     /**

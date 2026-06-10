@@ -1,6 +1,7 @@
 package bd.edu.seu.studysync.service;
 
 import bd.edu.seu.studysync.model.User;
+import bd.edu.seu.studysync.model.UserRole;
 import bd.edu.seu.studysync.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -14,32 +15,39 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    
 
-    public User registerUser(String username, String email, String password) {
+
+    public User registerUser(String username, String email, String password, UserRole role) {
         // Check if username already exists
         if (userRepository.existsByUsername(username)) {
             throw new RuntimeException("Username already exists");
         }
-        
+
         // Check if email already exists
         if (userRepository.existsByEmail(email)) {
             throw new RuntimeException("Email already exists");
         }
-        
+
         // Create new user
         User user = new User();
         user.setUsername(username);
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
-        user.setRole("USER");
+        user.setRole(role != null ? role : UserRole.STUDENT); // Default to STUDENT
         user.setCreatedAt(LocalDateTime.now());
         user.setEnabled(true);
-        
+
         return userRepository.save(user);
+    }
+
+    /**
+     * Register user - default role is STUDENT
+     */
+    public User registerUser(String username, String email, String password) {
+        return registerUser(username, email, password, UserRole.STUDENT);
     }
     
 
@@ -87,5 +95,12 @@ public class UserService {
             user.setPro(true);
             userRepository.save(user);
         }
+    }
+
+    /**
+     * Get user by ID
+     */
+    public Optional<User> getUserById(String userId) {
+        return userRepository.findById(userId);
     }
 }

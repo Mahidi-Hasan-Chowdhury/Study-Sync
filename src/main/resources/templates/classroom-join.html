@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="content">
+    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Classroom /</span> Join Classroom</h4>
+
+    <!-- Error Message -->
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Success Message -->
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bx bx-check-circle"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5 class="card-title">Join a Classroom 🎓</h5>
+                        <p class="text-muted mb-0">Enter the access code provided by your teacher to join their classroom!</p>
+                    </div>
+
+                    <form th:action="@{/classroom/join}" method="POST">
+                        <div class="mb-4">
+                            <label for="accessCode" class="form-label">Access Code <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control text-center text-uppercase fw-bold fs-4"
+                                   id="accessCode" name="accessCode"
+                                   placeholder="ABC123"
+                                   pattern="[A-Z2-9]{6}"
+                                   maxlength="6"
+                                   style="letter-spacing: 0.25rem;"
+                                   required />
+                            <small class="text-muted">Enter the 6-character code from your teacher</small>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a th:href="@{/classroom}" class="btn btn-label-secondary">
+                                <i class="bx bx-arrow-back me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bx bx-door-open me-2"></i>Join Classroom
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Access Code Formatting -->
+<script>
+    // Auto-uppercase and limit to 6 characters
+    document.addEventListener('DOMContentLoaded', function() {
+        const accessCodeInput = document.getElementById('accessCode');
+        if (accessCodeInput) {
+            accessCodeInput.addEventListener('input', function(e) {
+                this.value = this.value.toUpperCase().replace(/[^A-Z2-9]/g, '').slice(0, 6);
+            });
+        }
+    });
+</script>
+
+</html>

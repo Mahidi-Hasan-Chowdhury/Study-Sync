@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="content">
+    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Classroom /</span> My Classrooms</h4>
+
+    <!-- Alert Messages -->
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bx bx-check-circle"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Action Buttons - Both Create and Join available to everyone -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary bg-opacity-10 border-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <h5 class="mb-1">Manage Your Classrooms</h5>
+                            <p class="text-muted mb-0 small">Create classrooms to share materials, or join with an access code from others.</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a th:href="@{/classroom/create}" class="btn btn-primary">
+                                <i class="bx bx-plus-circle me-2"></i>Create Classroom
+                            </a>
+                            <a th:href="@{/classroom/join}" class="btn btn-outline-primary">
+                                <i class="bx bx-door-open me-2"></i>Join Classroom
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div th:if="${(createdClassrooms == null or createdClassrooms.isEmpty()) and (joinedClassrooms == null or joinedClassrooms.isEmpty())}" class="col-12">
+        <div class="card text-center py-5">
+            <div class="card-body">
+                <div class="mb-3">
+                    <i class="bx bx-book-open display-4 text-muted"></i>
+                </div>
+                <h5>No Classrooms Yet</h5>
+                <p class="text-muted">Create your own classroom or join one using an access code!</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <a th:href="@{/classroom/create}" class="btn btn-primary">
+                        <i class="bx bx-plus-circle me-2"></i>Create Classroom
+                    </a>
+                    <a th:href="@{/classroom/join}" class="btn btn-outline-primary">
+                        <i class="bx bx-door-open me-2"></i>Join Classroom
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Classrooms I Created -->
+    <div th:if="${createdClassrooms != null and not createdClassrooms.isEmpty()}" class="mb-4">
+        <h5 class="mb-3"><i class="bx bx-crown me-2 text-warning"></i>My Classrooms</h5>
+        <div class="row g-4">
+            <div th:each="classroom : ${createdClassrooms}" class="col-md-6 col-lg-4">
+                <div class="card hover-border-primary h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="avatar bg-primary bg-opacity-10 text-primary rounded">
+                                <div class="avatar-content">
+                                    <i class="bx bx-chalkboard fs-4"></i>
+                                </div>
+                            </div>
+                            <span class="badge bg-label-primary rounded-pill" th:text="'#' + ${classroom.accessCode}">#ABC123</span>
+                        </div>
+
+                        <h5 class="card-title mb-2">
+                            <a th:href="@{/classroom/{id}(id=${classroom.id})}" class="text-decoration-none stretched-link" th:text="${classroom.name}">Classroom Name</a>
+                        </h5>
+
+                        <p class="card-text text-muted small mb-3" th:text="${classroom.description}">Classroom description goes here...</p>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="bx bx-user me-1"></i>
+                                <span th:text="${classroom.studentCount} + ' students'">0 students</span>
+                            </small>
+                            <small class="text-muted">
+                                <i class="bx bx-calendar me-1"></i>
+                                <span th:text="${#temporals.format(classroom.createdAt, 'MMM dd, yyyy')}">Jan 01, 2024</span>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Classrooms I Joined -->
+    <div th:if="${joinedClassrooms != null and not joinedClassrooms.isEmpty()}" class="mb-4">
+        <h5 class="mb-3"><i class="bx bx-book-reader me-2 text-info"></i>Joined Classrooms</h5>
+        <div class="row g-4">
+            <div th:each="classroom : ${joinedClassrooms}" class="col-md-6 col-lg-4">
+                <div class="card hover-border-success h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="avatar bg-success bg-opacity-10 text-success rounded">
+                                <div class="avatar-content">
+                                    <i class="bx bx-book-open fs-4"></i>
+                                </div>
+                            </div>
+                            <span class="badge bg-label-success rounded-pill" th:text="'#' + ${classroom.accessCode}">#ABC123</span>
+                        </div>
+
+                        <h5 class="card-title mb-2">
+                            <a th:href="@{/classroom/{id}(id=${classroom.id})}" class="text-decoration-none stretched-link" th:text="${classroom.name}">Classroom Name</a>
+                        </h5>
+
+                        <p class="card-text text-muted small mb-3" th:text="${classroom.description}">Classroom description goes here...</p>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="bx bx-user me-1"></i>
+                                <span th:text="${classroom.studentCount} + ' students'">0 students</span>
+                            </small>
+                            <small class="text-muted">
+                                <i class="bx bx-calendar me-1"></i>
+                                <span th:text="${#temporals.format(classroom.createdAt, 'MMM dd, yyyy')}">Jan 01, 2024</span>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>

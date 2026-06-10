@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="content">
+    <div class="d-flex align-items-center mb-4">
+        <a th:href="@{/classroom}" class="text-decoration-none me-2">
+            <i class="bx bx-arrow-back fs-4"></i>
+        </a>
+        <div>
+            <h4 class="mb-0" th:text="${classroom.name}">Classroom Name</h4>
+            <small class="text-muted">Access Code: <strong th:text="${classroom.accessCode}">ABC123</strong></small>
+        </div>
+    </div>
+
+    <!-- Alert Messages -->
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bx bx-check-circle"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Classroom Header Card -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start flex-wrap">
+                <div>
+                    <h3 class="mb-2" th:text="${classroom.name}">Classroom Name</h3>
+                    <p class="text-muted mb-3" th:text="${classroom.description}">Classroom description goes here...</p>
+                    <div class="d-flex gap-3">
+                        <small class="text-muted">
+                            <i class="bx bx-user me-1"></i>
+                            <span th:text="${classroom.studentCount} + ' students enrolled'">0 students enrolled</span>
+                        </small>
+                        <small class="text-muted">
+                            <i class="bx bx-calendar me-1"></i>
+                            Created: <span th:text="${#temporals.format(classroom.createdAt, 'MMM dd, yyyy')}">Jan 01, 2024</span>
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Owner Actions -->
+                <div th:if="${isTeacher}" class="dropdown">
+                    <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="bx bx-cog me-2"></i>Manage
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editClassroomModal">
+                                <i class="bx bx-edit me-2"></i>Edit Classroom
+                            </button>
+                        </li>
+                        <li>
+                            <button class="dropdown-item" onclick="copyAccessCode()">
+                                <i class="bx bx-copy me-2"></i>Copy Access Code
+                            </button>
+                        </li>
+                        <li><div class="dropdown-divider"></div></li>
+                        <li>
+                            <form th:action="@{/classroom/{id}/archive(id=${classroom.id})}" method="POST" class="d-inline">
+                                <button type="submit" class="dropdown-item text-danger" onclick="return confirm('Are you sure you want to archive this classroom?')">
+                                    <i class="bx bx-archive me-2"></i>Archive Classroom
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Member Actions -->
+                <div th:if="${isStudent}">
+                    <form th:action="@{/classroom/{id}/leave(id=${classroom.id})}" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to leave this classroom?')">
+                            <i class="bx bx-log-out me-2"></i>Leave Classroom
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Grid -->
+    <div class="row g-4">
+        <!-- Members List (Only for owner) -->
+        <div th:if="${isTeacher}" class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Enrolled Members</h5>
+                    <span class="badge bg-label-primary" th:text="${classroom.studentCount}">0</span>
+                </div>
+                <div class="card-body">
+                    <div th:if="${classroom.studentIds == null or classroom.studentIds.isEmpty()}" class="text-center py-4">
+                        <i class="bx bx-user-x display-4 text-muted mb-3"></i>
+                        <p class="text-muted">No members enrolled yet</p>
+                        <p class="small text-muted">Share the access code <strong th:text="${classroom.accessCode}">ABC123</strong> to invite others</p>
+                    </div>
+                    <div th:if="${classroom.studentIds != null and not classroom.studentIds.isEmpty()}" class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Member ID</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="studentId, iter : ${classroom.studentIds}">
+                                    <td th:text="${iter.count}">1</td>
+                                    <td class="font-monospace" th:text="${studentId}">student-123</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Coming Soon: Materials Section -->
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Classroom Materials</h5>
+                </div>
+                <div class="card-body text-center py-5">
+                    <i class="bx bx-file display-4 text-muted mb-3"></i>
+                    <p class="text-muted">PDF materials coming soon!</p>
+                    <small class="text-muted">Classroom owners will be able to upload PDF documents for members to download.</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Coming Soon: Quizzes Section -->
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Classroom Quizzes</h5>
+                </div>
+                <div class="card-body text-center py-5">
+                    <i class="bx bx-quiz display-4 text-muted mb-3"></i>
+                    <p class="text-muted">Quiz integration coming soon!</p>
+                    <small class="text-muted">Classroom owners will be able to create and assign quizzes to this classroom.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Classroom Modal (Owner Only) -->
+    <div th:if="${isTeacher}" class="modal fade" id="editClassroomModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Classroom</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form th:action="@{/classroom/{id}/update(id=${classroom.id})}" method="POST">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="editName" class="form-label">Classroom Name</label>
+                            <input type="text" class="form-control" id="editName" name="name" th:value="${classroom.name}" required />
+                        </div>
+                        <div class="mb-3">
+                            <label for="editDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="editDescription" name="description" rows="3" th:text="${classroom.description}"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Copy Access Code -->
+<script th:inline="javascript">
+    function copyAccessCode() {
+        const accessCode = /*[[${classroom.accessCode}]]*/ 'ABC123';
+        navigator.clipboard.writeText(accessCode).then(() => {
+            alert('Access code copied: ' + accessCode);
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+            prompt('Copy the access code:', accessCode);
+        });
+    }
+</script>
+
+</html>

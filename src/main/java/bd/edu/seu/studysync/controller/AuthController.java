@@ -1,6 +1,7 @@
 package bd.edu.seu.studysync.controller;
 
 import bd.edu.seu.studysync.model.User;
+import bd.edu.seu.studysync.model.UserRole;
 import bd.edu.seu.studysync.security.JwtService;
 import bd.edu.seu.studysync.service.UserService;
 import jakarta.servlet.http.Cookie;
@@ -18,7 +19,7 @@ import java.util.Optional;
 @Controller
 @RequiredArgsConstructor
 public class AuthController {
-    
+
     private final UserService userService;
     private final JwtService jwtService;
     
@@ -42,16 +43,16 @@ public class AuthController {
             @RequestParam String password,
             HttpServletResponse response,
             RedirectAttributes redirectAttributes) {
-        
+
         // Authenticate user
         Optional<User> userOpt = userService.authenticateUser(username, password);
-        
+
         if (userOpt.isPresent()) {
             User user = userOpt.get();
-            
-            // Generate JWT token
+
+            // Generate JWT token with UserRole
             String token = jwtService.generateToken(user.getUsername(), user.getRole());
-            
+
             // Create cookie with JWT token
             Cookie cookie = new Cookie("JWTtoken", token);
             cookie.setPath("/");
@@ -59,11 +60,15 @@ public class AuthController {
             cookie.setMaxAge(86400); // 24 hours
             // cookie.setSecure(true); // Enable in production with HTTPS
             response.addCookie(cookie);
-            
-            // Redirect to quiz page
-            return "redirect:/quiz/dashboard";
+
+            // Redirect based on role
+            if (user.getRole() == UserRole.TEACHER) {
+                return "redirect:/classroom";
+            } else {
+                return "redirect:/quiz/dashboard";
+            }
         }
-        
+
         // Login failed
         return "redirect:/login?error";
     }
@@ -85,29 +90,38 @@ public class AuthController {
             @RequestParam String email,
             @RequestParam String password,
             @RequestParam String confirmPassword,
+            @RequestParam(required = false, defaultValue = "STUDENT") String role,
             RedirectAttributes redirectAttributes) {
-        
+
         // Validate passwords match
         if (!password.equals(confirmPassword)) {
             redirectAttributes.addFlashAttribute("error", "Passwords do not match");
             return "redirect:/register";
         }
-        
+
         // Validate password length
         if (password.length() < 6) {
             redirectAttributes.addFlashAttribute("error", "Password must be at least 6 characters");
             return "redirect:/register";
         }
-        
+
         try {
-            // Register user
-            userService.registerUser(username, email, password);
-            
+            // Parse role (default to STUDENT if invalid)
+            UserRole userRole;
+            try {
+                userRole = UserRole.valueOf(role.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                userRole = UserRole.STUDENT;
+            }
+
+            // Register user with role
+            userService.registerUser(username, email, password, userRole);
+
             // Success message
-            redirectAttributes.addFlashAttribute("success", 
+            redirectAttributes.addFlashAttribute("success",
                     "Registration successful! Please login with your credentials.");
             return "redirect:/login";
-            
+
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/register";

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="content">
+    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Classroom /</span> Create Classroom</h4>
+
+    <!-- Error Message -->
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Success Message -->
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bx bx-check-circle"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5 class="card-title">Create a New Classroom 📚</h5>
+                        <p class="text-muted mb-0">Set up your classroom and start sharing materials with students!</p>
+                    </div>
+
+                    <form th:action="@{/classroom/create}" method="POST">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Classroom Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name"
+                                   placeholder="e.g., Physics 101 - Spring 2024" required />
+                        </div>
+                        <div class="mb-4">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"
+                                      placeholder="Brief description of your classroom..."></textarea>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="bx bx-info-circle me-2"></i>
+                            An access code will be generated automatically for students to join your classroom.
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a th:href="@{/classroom}" class="btn btn-label-secondary">
+                                <i class="bx bx-arrow-back me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bx bx-plus-circle me-2"></i>Create Classroom
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>
