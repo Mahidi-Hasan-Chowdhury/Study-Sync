@@ -186,10 +186,21 @@ public class ClassroomController {
             return "redirect:/classroom?error=You+don't+have+access+to+this+classroom";
         }
 
+        // Fetch member usernames for display
+        java.util.Map<String, String> memberUsernames = new java.util.HashMap<>();
+        if (classroom.getStudentIds() != null) {
+            for (String memberId : classroom.getStudentIds()) {
+                userService.getUserById(memberId).ifPresent(member ->
+                    memberUsernames.put(memberId, member.getUsername())
+                );
+            }
+        }
+
         model.addAttribute("classroom", classroom);
         model.addAttribute("isTeacher", isTeacher);
         model.addAttribute("isStudent", isStudent);
         model.addAttribute("currentUser", user);
+        model.addAttribute("memberUsernames", memberUsernames);
         model.addAttribute("contentPage", "classroom-details");
         return "layout";
     }
