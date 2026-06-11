@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="content">
+    <div class="d-flex align-items-center mb-4">
+        <a th:href="@{/classroom/{id}(id=${session.classroomId})}" class="text-decoration-none me-2">
+            <i class="bx bx-arrow-back fs-4"></i>
+        </a>
+        <div>
+            <h4 class="mb-0" th:text="${session.title}">Live Quiz Session</h4>
+            <small class="text-muted">Session details and management</small>
+        </div>
+    </div>
+
+    <!-- Alert Messages -->
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bx bx-error-circle me-2"></i>
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bx bx-check-circle me-2"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Session Info Card -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <h5 class="mb-2" th:text="${session.title}">Quiz Title</h5>
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <span class="badge"
+                                  th:classappend="${session.status == T(bd.edu.seu.studysync.model.LiveQuizSession.SessionStatus).SCHEDULED ? 'bg-label-primary' :
+                                                 session.status == T(bd.edu.seu.studysync.model.LiveQuizSession.SessionStatus).LOBBY_OPEN ? 'bg-label-info' :
+                                                 session.status == T(bd.edu.seu.studysync.model.LiveQuizSession.SessionStatus).LIVE ? 'bg-label-danger' :
+                                                 session.status == T(bd.edu.seu.studysync.model.LiveQuizSession.SessionStatus).COMPLETED ? 'bg-label-success' : 'bg-label-secondary'}"
+                                  th:text="${session.status}">
+                                SCHEDULED
+                            </span>
+                            <span class="text-muted">
+                                <i class="bx bx-calendar me-1"></i>
+                                <span th:text="${#temporals.format(session.scheduledStart, 'MMM dd, yyyy HH:mm')}">Jan 15, 2024 4:00 PM</span>
+                            </span>
+                            <span class="text-muted">
+                                <i class="bx bx-time me-1"></i>
+                                <span th:text="${session.durationSeconds / 60} + ' minutes'">30 minutes</span>
+                            </span>
+                        </div>
+                        <p class="text-muted small mb-0" th:if="${session.instructions != null and !session.instructions.isEmpty()}"
+                           th:text="${session.instructions}">Quiz instructions</p>
+                    </div>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <div th:if="${isTeacher}">
+                        <!-- Teacher Controls based on status -->
+                        <div th:if="${session.status == T(bd.edu.seu.studysync.model.LiveQuizSession.SessionStatus).SCHEDULED}">
+                            <form th:action="@{/live-quiz/{id}/open-lobby(id=${session.id})}" method="POST">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bx bx-door-open me-2"></i>Open Lobby
+                                </button>
+                            </form>
+                        </div>
+
+                        <div th:if="${session.status == T(bd.edu.seu.studysync.model.LiveQuizSession.SessionStatus).LOBBY_OPEN}">
+                            <form th:action="@{/live-quiz/{id}/start(id=${session.id})}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="bx bx-play me-2"></i>Start Quiz
+                                </button>
+                            </form>
+                            <form th:action="@{/live-quiz/{id}/cancel(id=${session.id})}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Cancel this quiz?')">
+                                    <i class="bx bx-x"></i>
+                                </button>
+                            </form>
+                        </div>
+
+                        <div th:if="${session.status == T(bd.edu.seu.studysync.model.LiveQuizSession.SessionStatus).LIVE}">
+                            <div class="btn-group">
+                                <form th:action="@{/live-quiz/{id}/extend(id=${session.id}, minutes=5)}" method="POST">
+                                    <button type="submit" class="btn btn-outline-primary">
+                                        <i class="bx bx-plus"></i> 5m
+                                    </button>
+                                </form>
+                                <form th:action="@{/live-quiz/{id}/extend(id=${session.id}, minutes=-5)}" method="POST">
+                                    <button type="submit" class="btn btn-outline-primary">
+                                        <i class="bx bx-minus"></i> 5m
+                                    </button>
+                                </form>
+                            </div>
+                            <form th:action="@{/live-quiz/{id}/end(id=${session.id})}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-danger" onclick="return confirm('End quiz now?')">
+                                    <i class="bx bx-stop me-2"></i>End Quiz
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div th:if="${isStudent}">
+                        <!-- Student Actions -->
+                        <div th:if="${session.status == T(bd.edu.seu.studysync.model.LiveQuizSession.SessionStatus).LOBBY_OPEN or session.status == T(bd.edu.seu.studysync.model.LiveQuizSession.SessionStatus).LIVE}">
+                            <form th:action="@{/live-quiz/{id}/join(id=${session.id})}" method="POST">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bx bx-door-open me-2"></i>Join Quiz
+                                </button>
+                            </form>
+                        </div>
+                        <div th:if="${session.status == T(bd.edu.seu.studysync.model.LiveQuizSession.SessionStatus).SCHEDULED}">
+                            <button class="btn btn-outline-secondary" disabled>
+                                <i class="bx bx-time-five me-2"></i>Waiting to start
+                            </button>
+                        </div>
+                        <div th:if="${session.status == T(bd.edu.seu.studysync.model.LiveQuizSession.SessionStatus).COMPLETED}">
+                            <button class="btn btn-success" disabled>
+                                <i class="bx bx-check-circle me-2"></i>Quiz Completed
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Participants Card -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Participants</h5>
+            <span class="badge bg-label-primary" th:text="${session.participantCount} + ' / ' + (session.maxParticipants > 0 ? session.maxParticipants : '∞')">
+                0 / ∞
+            </span>
+        </div>
+        <div class="card-body">
+            <div th:if="${session.participantCount == 0}" class="text-center py-4 text-muted">
+                <i class="bx bx-user-x display-6 mb-2"></i>
+                <p>No participants yet</p>
+            </div>
+            <div th:if="${session.participantCount > 0}">
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="badge bg-label-secondary" th:each="participantId : ${session.participantIds}"
+                          th:text="'Participant ' + ${participantIdStat.count}">
+                        Participant
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>

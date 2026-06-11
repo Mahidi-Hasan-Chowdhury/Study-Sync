@@ -5,6 +5,7 @@ import bd.edu.seu.studysync.model.User;
 import bd.edu.seu.studysync.model.UserRole;
 import bd.edu.seu.studysync.service.ClassroomService;
 import bd.edu.seu.studysync.service.UserService;
+import bd.edu.seu.studysync.service.LiveQuizSessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,6 +21,7 @@ public class ClassroomController {
 
     private final ClassroomService classroomService;
     private final UserService userService;
+    private final LiveQuizSessionService liveQuizSessionService;
 
     /**
      * Display classroom creation page
@@ -201,6 +203,11 @@ public class ClassroomController {
         model.addAttribute("isStudent", isStudent);
         model.addAttribute("currentUser", user);
         model.addAttribute("memberUsernames", memberUsernames);
+
+        // Fetch live quiz sessions for this classroom
+        List<?> sessions = liveQuizSessionService.getUpcomingSessions(id);
+        model.addAttribute("sessions", sessions);
+
         model.addAttribute("contentPage", "classroom-details");
         return "layout";
     }

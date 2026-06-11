@@ -55,6 +55,16 @@
                             </a>
                         </li>
                         <li>
+                            <a th:href="@{/classroom/{id}/live-quiz/schedule(id=${classroom.id})}" class="dropdown-item">
+                                <i class="bx bx-time-five me-2"></i>Schedule Live Quiz
+                            </a>
+                        </li>
+                        <li>
+                            <a th:href="@{/classroom/{id}/live-quiz(id=${classroom.id})}" class="dropdown-item">
+                                <i class="bx bx-quiz me-2"></i>Live Quizzes
+                            </a>
+                        </li>
+                        <li>
                             <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editClassroomModal">
                                 <i class="bx bx-edit me-2"></i>Edit Classroom
                             </button>
@@ -159,14 +169,57 @@
             </div>
         </div>
 
-        <!-- Coming Soon: Quizzes Section -->
+        <!-- Live Quizzes Section -->
         <div class="col-lg-6">
             <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="mb-0">Classroom Quizzes</h5>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Live Quizzes</h5>
+                    <div th:if="${isTeacher}">
+                        <a th:href="@{/classroom/{id}/live-quiz/schedule(id=${classroom.id})}" class="btn btn-sm btn-primary">
+                            <i class="bx bx-plus"></i>
+                        </a>
+                    </div>
                 </div>
-                <div class="card-body text-center py-5">
-                    <i class="bx bx-quiz display-4 text-muted mb-3"></i>
+                <div class="card-body">
+                    <div th:if="${sessions == null or sessions.isEmpty()}" class="text-center py-4">
+                        <i class="bx bx-time-five display-4 text-muted mb-3"></i>
+                        <h6 class="text-muted mb-1">No quizzes scheduled</h6>
+                        <p class="text-muted small" th:text="${isTeacher} ? 'Schedule a live quiz for your classroom' : 'Waiting for teacher to schedule quizzes'">
+                            Schedule a live quiz for your classroom
+                        </p>
+                        <a th:if="${isTeacher}" th:href="@{/classroom/{id}/live-quiz/schedule(id=${classroom.id})}" class="btn btn-sm btn-outline-primary">
+                            Schedule Quiz
+                        </a>
+                    </div>
+                    <div th:if="${sessions != null and not sessions.isEmpty()}">
+                        <div th:each="quizSession : ${sessions}" class="mb-3 pb-3" th:classappend="${quizSessionStat.last ? '' : 'border-bottom'}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1" th:text="${quizSession.title}">Quiz Title</h6>
+                                    <small class="text-muted">
+                                        <i class="bx bx-calendar me-1"></i>
+                                        <span th:text="${#temporals.format(quizSession.scheduledStart, 'MMM dd, yyyy HH:mm')}">Jan 15, 2024 4:00 PM</span>
+                                    </small>
+                                    <div class="mt-1">
+                                        <span class="badge"
+                                              th:classappend="${quizSession.status == T(bd.edu.seu.studysync.model.LiveQuizSession.SessionStatus).SCHEDULED ? 'bg-label-primary' :
+                                                               quizSession.status == T(bd.edu.seu.studysync.model.LiveQuizSession.SessionStatus).LOBBY_OPEN ? 'bg-label-info' :
+                                                               quizSession.status == T(bd.edu.seu.studysync.model.LiveQuizSession.SessionStatus).LIVE ? 'bg-label-danger' :
+                                                               quizSession.status == T(bd.edu.seu.studysync.model.LiveQuizSession.SessionStatus).COMPLETED ? 'bg-label-success' : 'bg-label-secondary'}"
+                                              th:text="${quizSession.status}">
+                                            SCHEDULED
+                                        </span>
+                                    </div>
+                                </div>
+                                <a th:href="@{/live-quiz/{id}(id=${quizSession.id})}" class="btn btn-sm btn-outline-primary">
+                                    View
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
                     <p class="text-muted">Quiz integration coming soon!</p>
                     <small class="text-muted">Classroom owners will be able to create and assign quizzes to this classroom.</small>
                 </div>

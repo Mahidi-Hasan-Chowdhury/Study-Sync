@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="content">
+    <div class="d-flex align-items-center mb-4">
+        <a th:if="${classroomId != null and !classroomId.isEmpty()}"
+           th:href="@{/classroom/{id}(id=${classroomId})}" class="text-decoration-none me-2">
+            <i class="bx bx-arrow-back fs-4"></i>
+        </a>
+        <a th:if="${classroomId == null or classroomId.isEmpty()}"
+           th:href="@{/classroom}" class="text-decoration-none me-2">
+            <i class="bx bx-arrow-back fs-4"></i>
+        </a>
+        <div>
+            <h4 class="mb-0">Schedule Live Quiz</h4>
+            <small class="text-muted">Create a scheduled quiz session for your classroom</small>
+        </div>
+    </div>
+
+    <!-- Alert Messages -->
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bx bx-error-circle me-2"></i>
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bx bx-check-circle me-2"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <form th:action="@{/live-quiz/create}" method="POST">
+                        <!-- Hidden classroom ID -->
+                        <input type="hidden" name="classroomId" th:value="${classroomId}" />
+
+                        <!-- Basic Information -->
+                        <div class="mb-4">
+                            <h6 class="mb-3">
+                                <i class="bx bx-info-circle me-2"></i>Basic Information
+                            </h6>
+
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Quiz Title</label>
+                                <input type="text" class="form-control" id="title" name="title"
+                                       placeholder="e.g., Midterm Exam - Chapter 5" required />
+                                <small class="text-muted">A descriptive title for students</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="quizId" class="form-label">Select Quiz</label>
+                                <select class="form-select" id="quizId" name="quizId" required>
+                                    <option value="">-- Choose a quiz --</option>
+                                    <option th:each="quiz : ${quizzes}"
+                                            th:value="${quiz.id}"
+                                            th:text="${quiz.quizType + ' - ' + quiz.difficulty + ' (' + quiz.questionCount + ' questions, ' + (quiz.timeLimitSeconds / 60) + ' min)'}">
+                                        MCQ - MEDIUM (10 questions, 10 min)
+                                    </option>
+                                </select>
+                                <small class="text-muted">
+                                    <i class="bx bx-info-circle"></i>
+                                    Only your own quizzes are listed
+                                </small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="instructions" class="form-label">Instructions (Optional)</label>
+                                <textarea class="form-control" id="instructions" name="instructions" rows="3"
+                                          placeholder="Add any special instructions for students..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Schedule -->
+                        <div class="mb-4">
+                            <h6 class="mb-3">
+                                <i class="bx bx-calendar me-2"></i>Schedule
+                            </h6>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="scheduledDate" class="form-label">Date</label>
+                                    <input type="date" class="form-control" id="scheduledDate" name="scheduledDate"
+                                           required min="" />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="scheduledTime" class="form-label">Time</label>
+                                    <input type="time" class="form-control" id="scheduledTime" name="scheduledTime"
+                                           required />
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="durationMinutes" class="form-label">Duration</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="durationMinutes" name="durationMinutes"
+                                           min="1" max="240" value="30" required />
+                                    <span class="input-group-text">minutes</span>
+                                </div>
+                                <small class="text-muted">Quiz will auto-submit when time expires</small>
+                            </div>
+                        </div>
+
+                        <!-- Configuration -->
+                        <div class="mb-4">
+                            <h6 class="mb-3">
+                                <i class="bx bx-settings me-2"></i>Configuration
+                            </h6>
+
+                            <div class="form-check form-switch mb-3">
+                                <input type="checkbox" class="form-check-input" id="allowLateEntry" name="allowLateEntry"
+                                       onchange="toggleLateEntrySettings()" />
+                                <label for="allowLateEntry" class="form-label">
+                                    Allow late entry
+                                    <small class="text-muted d-block">Students can join after quiz has started</small>
+                                </label>
+                            </div>
+
+                            <div id="lateEntrySettings" class="ms-4 mb-3" style="display: none;">
+                                <label class="form-label">Grace Period</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" name="lateEntryGraceMinutes"
+                                           min="0" max="30" value="5" />
+                                    <span class="input-group-text">minutes</span>
+                                </div>
+                                <small class="text-muted">Students can join within this time after start</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="maxParticipants" class="form-label">Maximum Participants</label>
+                                <input type="number" class="form-control" id="maxParticipants" name="maxParticipants"
+                                       min="0" value="0" />
+                                <small class="text-muted">0 = unlimited participants</small>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="maxAttempts" class="form-label">Max Attempts per Student</label>
+                                    <input type="number" class="form-control" id="maxAttempts" name="maxAttempts"
+                                           min="1" max="3" value="1" />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Auto-publish Results</label>
+                                    <div class="form-check form-switch mt-2">
+                                        <input type="checkbox" class="form-check-input" id="autoPublishResults"
+                                               name="autoPublishResults" checked />
+                                        <label for="autoPublishResults" class="form-label">
+                                            Show results immediately
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bx bx-calendar-plus me-2"></i>Schedule Live Quiz
+                            </button>
+                            <a th:if="${classroomId != null and !classroomId.isEmpty()}"
+                               th:href="@{/classroom/{id}(id=${classroomId})}" class="btn btn-label-secondary">
+                                Cancel
+                            </a>
+                            <a th:if="${classroomId == null or classroomId.isEmpty()}"
+                               th:href="@{/classroom}" class="btn btn-label-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Sidebar -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h6 class="mb-3">
+                        <i class="bx bx-help-circle me-2"></i>How it works
+                    </h6>
+                    <ol class="mb-0 small text-muted">
+                        <li class="mb-2">Select a quiz you've created</li>
+                        <li class="mb-2">Set the date and time</li>
+                        <li class="mb-2">Configure late entry rules</li>
+                        <li class="mb-2">Students will see "Upcoming Quiz"</li>
+                        <li>Open lobby on quiz day to start</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="mb-3">
+                        <i class="bx bx-time me-2"></i>Timeline
+                    </h6>
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="badge bg-label-primary me-2">1</div>
+                        <div>
+                            <small class="text-muted">Scheduled</small>
+                            <div class="small">Quiz appears in "Upcoming"</div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="badge bg-label-info me-2">2</div>
+                        <div>
+                            <small class="text-muted">Lobby Open</small>
+                            <div class="small">Students join waiting room</div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="badge bg-label-danger me-2">3</div>
+                        <div>
+                            <small class="text-muted">Live</small>
+                            <div class="small">Quiz in progress</div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start">
+                        <div class="badge bg-label-success me-2">4</div>
+                        <div>
+                            <small class="text-muted">Completed</small>
+                            <div class="small">Results available</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Set minimum date to today
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('scheduledDate').setAttribute('min', today);
+});
+
+// Toggle late entry settings visibility
+function toggleLateEntrySettings() {
+    const checkbox = document.getElementById('allowLateEntry');
+    const settings = document.getElementById('lateEntrySettings');
+    settings.style.display = checkbox.checked ? 'block' : 'none';
+}
+</script>
+
+</html>
