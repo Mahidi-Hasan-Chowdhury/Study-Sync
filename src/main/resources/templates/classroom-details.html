@@ -44,7 +44,7 @@
                 </div>
 
                 <!-- Owner Actions -->
-                <div th:if="${isTeacher}" class="dropdown">
+                <div th:if="${isOwner}" class="dropdown">
                     <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
                         <i class="bx bx-cog me-2"></i>Manage
                     </button>
@@ -86,7 +86,7 @@
                 </div>
 
                 <!-- Member Actions -->
-                <div th:if="${isStudent}">
+                <div th:if="${isMember}">
                     <div class="dropdown">
                         <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
                             <i class="bx bx-cog me-2"></i>Actions
@@ -115,7 +115,7 @@
     <!-- Content Grid -->
     <div class="row g-4">
         <!-- Members List (Only for owner) -->
-        <div th:if="${isTeacher}" class="col-lg-6">
+        <div th:if="${isOwner}" class="col-lg-6">
             <div class="card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Enrolled Members</h5>
@@ -174,7 +174,7 @@
             <div class="card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Live Quizzes</h5>
-                    <div th:if="${isTeacher}">
+                    <div th:if="${isOwner}">
                         <a th:href="@{/classroom/{id}/live-quiz/schedule(id=${classroom.id})}" class="btn btn-sm btn-primary">
                             <i class="bx bx-plus"></i>
                         </a>
@@ -184,10 +184,10 @@
                     <div th:if="${sessions == null or sessions.isEmpty()}" class="text-center py-4">
                         <i class="bx bx-time-five display-4 text-muted mb-3"></i>
                         <h6 class="text-muted mb-1">No quizzes scheduled</h6>
-                        <p class="text-muted small" th:text="${isTeacher} ? 'Schedule a live quiz for your classroom' : 'Waiting for teacher to schedule quizzes'">
+                        <p class="text-muted small" th:text="${isOwner} ? 'Schedule a live quiz for your classroom' : 'Waiting for teacher to schedule quizzes'">
                             Schedule a live quiz for your classroom
                         </p>
-                        <a th:if="${isTeacher}" th:href="@{/classroom/{id}/live-quiz/schedule(id=${classroom.id})}" class="btn btn-sm btn-outline-primary">
+                        <a th:if="${isOwner}" th:href="@{/classroom/{id}/live-quiz/schedule(id=${classroom.id})}" class="btn btn-sm btn-outline-primary">
                             Schedule Quiz
                         </a>
                     </div>
@@ -211,9 +211,20 @@
                                         </span>
                                     </div>
                                 </div>
-                                <a th:href="@{/live-quiz/{id}(id=${quizSession.id})}" class="btn btn-sm btn-outline-primary">
-                                    View
-                                </a>
+                                <!-- Teacher sees View, Student sees Take Quiz -->
+                                <div th:if="${isOwner}">
+                                    <a th:href="@{/live-quiz/{id}(id=${quizSession.id})}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bx bx-show me-1"></i>Manage
+                                    </a>
+                                </div>
+                                <div th:if="${isMember}">
+                                    <button th:data-quiz-id="${quizSession.id}"
+                                            th:data-scheduled-time="${#temporals.format(quizSession.scheduledStart, 'yyyy-MM-dd HH:mm:ss')}"
+                                            th:data-status="${quizSession.status}"
+                                            class="btn btn-sm btn-primary take-quiz-btn">
+                                        <i class="bx bx-edit me-1"></i>Take Quiz
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -228,7 +239,7 @@
     </div>
 
     <!-- Edit Classroom Modal (Owner Only) -->
-    <div th:if="${isTeacher}" class="modal fade" id="editClassroomModal" tabindex="-1" aria-hidden="true">
+    <div th:if="${isOwner}" class="modal fade" id="editClassroomModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -256,6 +267,27 @@
     </div>
 </div>
 
+<!-- Countdown Modal -->
+<div class="modal fade" id="countdownModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Quiz Starting Soon!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <i class="bx bx-time-five display-4 text-primary mb-3"></i>
+                <p class="mb-2">This quiz will start in:</p>
+                <h3 class="text-primary mb-3" id="countdownTimer">00:00:00</h3>
+                <p class="text-muted small">You will be redirected automatically when the quiz starts.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Copy Access Code -->
 <script th:inline="javascript">
     function copyAccessCode() {
@@ -266,6 +298,125 @@
             console.error('Failed to copy: ', err);
             prompt('Copy the access code:', accessCode);
         });
+    }
+
+    // Attach event listeners to Take Quiz buttons using event delegation
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, attaching event listeners');
+
+        // Use event delegation
+        document.body.addEventListener('click', function(e) {
+            const button = e.target.closest('.take-quiz-btn');
+            if (button) {
+                e.preventDefault();
+                const quizId = button.getAttribute('data-quiz-id');
+                const scheduledTime = button.getAttribute('data-scheduled-time');
+                const status = button.getAttribute('data-status');
+
+                console.log('Take Quiz clicked:', { quizId, scheduledTime, status });
+                alert('Take Quiz clicked! Quiz ID: ' + quizId + ', Status: ' + status);
+
+                handleTakeQuiz(quizId, scheduledTime, status);
+            }
+        });
+    });
+
+    // Handle Take Quiz button click with countdown logic
+    function handleTakeQuiz(quizId, scheduledTime, status) {
+        // If quiz is already LOBBY_OPEN or LIVE, redirect directly
+        if (status === 'LOBBY_OPEN' || status === 'LIVE') {
+            window.location.href = '/live-quiz/' + quizId + '/take';
+            return;
+        }
+
+        // If quiz is COMPLETED, show results
+        if (status === 'COMPLETED') {
+            window.location.href = '/live-quiz/' + quizId + '/leaderboard';
+            return;
+        }
+
+        // For SCHEDULED quizzes, check countdown
+        // Parse the date string (format: yyyy-MM-dd HH:mm:ss)
+        const scheduledDate = new Date(scheduledTime.replace(/-/g, '/'));
+        const now = new Date();
+        const timeUntilStart = scheduledDate - now;
+
+        console.log('Time check:', { scheduledDate, now, timeUntilStart });
+
+        if (timeUntilStart <= 0) {
+            // Time has passed, redirect to take quiz
+            window.location.href = '/live-quiz/' + quizId + '/take';
+            return;
+        }
+
+        // Show countdown modal
+        showCountdownModal(scheduledDate, quizId);
+    }
+
+    function showCountdownModal(scheduledDate, quizId) {
+        try {
+            const modal = document.getElementById('countdownModal');
+            if (!modal) {
+                console.error('Countdown modal not found');
+                alert('Quiz not available yet. Please wait.');
+                return;
+            }
+
+            // Show modal
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                const bsModal = new bootstrap.Modal(modal);
+                bsModal.show();
+
+                // Start countdown
+                let countdownInterval;
+
+                function updateCountdown() {
+                    const now = new Date();
+                    const timeLeft = scheduledDate - now;
+
+                    if (timeLeft <= 0) {
+                        // Time's up!
+                        clearInterval(countdownInterval);
+                        bsModal.hide();
+                        window.location.href = '/live-quiz/' + quizId + '/take';
+                        return;
+                    }
+
+                    // Calculate hours, minutes, seconds
+                    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                    // Update display
+                    const timerEl = document.getElementById('countdownTimer');
+                    if (timerEl) {
+                        timerEl.textContent =
+                            String(hours).padStart(2, '0') + ':' +
+                            String(minutes).padStart(2, '0') + ':' +
+                            String(seconds).padStart(2, '0');
+                    }
+                }
+
+                // Initial update
+                updateCountdown();
+
+                // Update every second
+                countdownInterval = setInterval(updateCountdown, 1000);
+
+                // Clear interval when modal is hidden
+                modal.addEventListener('hidden.bs.modal', function() {
+                    if (countdownInterval) {
+                        clearInterval(countdownInterval);
+                    }
+                }, {once: true});
+            } else {
+                console.error('Bootstrap Modal not available');
+                alert('Quiz not available yet. Please wait.');
+            }
+        } catch (e) {
+            console.error('Error showing countdown modal:', e);
+            alert('Error: ' + e.message);
+        }
     }
 </script>
 

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="content">
+    <div class="d-flex align-items-center mb-4">
+        <a th:href="@{/live-quiz/{id}(id=${session.id})}" class="text-decoration-none me-2">
+            <i class="bx bx-arrow-back fs-4"></i>
+        </a>
+        <div>
+            <h4 class="mb-0">Leaderboard</h4>
+            <small class="text-muted" th:text="${session.title}">Session Title</small>
+        </div>
+    </div>
+
+    <!-- Leaderboard Card -->
+    <div class="card">
+        <div class="card-body">
+            <div th:if="${leaderboard == null or leaderboard.isEmpty()}" class="text-center py-5 text-muted">
+                <i class="bx bx-bar-chart display-4 mb-3"></i>
+                <p>No submissions yet</p>
+                <small>Results will appear here as students submit their quizzes</small>
+            </div>
+
+            <div th:if="${leaderboard != null and not leaderboard.isEmpty()}">
+                <!-- Table Header -->
+                <div class="row mb-3 fw-bold text-muted small">
+                    <div class="col-1 text-center">#</div>
+                    <div class="col-5">Student</div>
+                    <div class="col-2 text-center">Score</div>
+                    <div class="col-2 text-center">Time</div>
+                    <div class="col-2 text-center">Status</div>
+                </div>
+
+                <!-- Leaderboard Rows -->
+                <div th:each="attempt, stat : ${leaderboard}">
+                    <div class="row align-items-center border-bottom py-3" th:classappend="${stat.last ? 'border-bottom-0' : ''}">
+                        <!-- Rank -->
+                        <div class="col-1 text-center">
+                            <span th:if="${stat.count == 1}" class="badge bg-warning text-dark fs-5">🥇</span>
+                            <span th:if="${stat.count == 2}" class="badge bg-secondary fs-5">🥈</span>
+                            <span th:if="${stat.count == 3}" class="badge bg-danger text-white fs-5">🥉</span>
+                            <span th:if="${stat.count > 3}" class="badge bg-label-secondary" th:text="${stat.count}">4</span>
+                        </div>
+
+                        <!-- Student -->
+                        <div class="col-5">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar bg-primary bg-opacity-10 text-primary rounded me-2">
+                                    <div class="avatar-content">
+                                        <i class="bx bx-user"></i>
+                                    </div>
+                                </div>
+                                <span class="fw-medium" th:text="${attempt.studentId}">student-id</span>
+                            </div>
+                        </div>
+
+                        <!-- Score -->
+                        <div class="col-2 text-center">
+                            <span class="badge bg-label-primary fs-6" th:text="${#numbers.formatDecimal(attempt.scorePercentage, 1, 1)} + '%'">85.5%</span>
+                        </div>
+
+                        <!-- Time -->
+                        <div class="col-2 text-center text-muted">
+                            <small>
+                                <i class="bx bx-time"></i>
+                                <span th:text="${attempt.timeTakenSeconds / 60}">5</span>m
+                            </small>
+                        </div>
+
+                        <!-- Status -->
+                        <div class="col-2 text-center">
+                            <span class="badge bg-label-success"
+                                  th:if="${attempt.status.name == 'GRADED' || attempt.status.name == 'SUBMITTED'}">Completed</span>
+                            <span class="badge bg-label-warning"
+                                  th:if="${attempt.status.name == 'TIMED_OUT'}">Timed Out</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="card mt-4">
+        <div class="card-body">
+            <a th:href="@{/classroom/{id}(id=${session.classroomId})}" class="btn btn-primary">
+                <i class="bx bx-home me-2"></i>Back to Classroom
+            </a>
+        </div>
+    </div>
+</div>
+
+</html>

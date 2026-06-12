@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="content">
+    <div class="d-flex align-items-center mb-4">
+        <a th:href="@{/live-quiz/{id}(id=${session.id})}" class="text-decoration-none me-2">
+            <i class="bx bx-arrow-back fs-4"></i>
+        </a>
+        <div>
+            <h4 class="mb-0" th:text="${session.title}">Live Quiz</h4>
+            <small class="text-muted">Answer the questions below</small>
+        </div>
+        <div class="ms-auto">
+            <div class="badge bg-label-danger fs-6">
+                <i class="bx bx-time-five"></i>
+                <span id="timer">--:--</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="card mb-4" th:if="${session.instructions != null and !session.instructions.isEmpty()}">
+        <div class="card-body bg-light">
+            <h6 class="mb-2"><i class="bx bx-info-circle me-2"></i>Instructions</h6>
+            <p class="mb-0 small" th:text="${session.instructions}"></p>
+        </div>
+    </div>
+
+    <!-- Quiz Progress -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <small class="text-muted">Progress</small>
+                <small class="text-muted">
+                    <span id="answeredCount">0</span> / <span th:text="${quiz.questionCount}">0</span> answered
+                </small>
+            </div>
+            <div class="progress" style="height: 8px;">
+                <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Questions Form -->
+    <form id="quizForm" th:action="@{/live-quiz/attempts/{id}/submit(id=${attempt.id})}" method="POST">
+        <input type="hidden" name="attemptId" th:value="${attempt.id}" />
+
+        <!-- Questions Container -->
+        <div id="questionsContainer">
+            <div th:each="question, qStat : ${quiz.questions}" class="card mb-3 question-card" th:id="'question-' + ${qStat.index}">
+                <div class="card-body">
+                    <!-- Question Number -->
+                    <div class="d-flex align-items-start mb-3">
+                        <span class="badge bg-primary me-2" th:text="${qStat.count}">1</span>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-2" th:text="${question.question}">Question text goes here?</h6>
+                        </div>
+                    </div>
+
+                    <!-- MCQ Options -->
+                    <div th:if="${question.questionType == 'MCQ'}" class="ms-4">
+                        <div class="form-check mb-2" th:each="option : ${{'A', 'B', 'C', 'D'}}">
+                            <input class="form-check-input quiz-option"
+                                   type="radio"
+                                   th:name="'q-' + ${qStat.index}"
+                                   th:id="'q-' + ${qStat.index} + '-' + ${option}"
+                                   th:value="${option}"
+                                   onchange="saveAnswer(this)"
+                                   required />
+                            <label class="form-check-label" th:for="'q-' + ${qStat.index} + '-' + ${option}">
+                                <span class="badge bg-label-secondary me-2" th:text="${option}">A</span>
+                                <span th:text="${{
+                                    option == 'A' ? question.optionA :
+                                    option == 'B' ? question.optionB :
+                                    option == 'C' ? question.optionC : question.optionD
+                                }}">Option text</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- CQ Text Area -->
+                    <div th:if="${question.questionType == 'CQ'}" class="ms-4">
+                        <textarea class="form-control quiz-textarea"
+                                  th:name="'q-' + ${qStat.index}"
+                                  rows="4"
+                                  placeholder="Enter your answer here..."
+                                  onchange="saveAnswer(this)"></textarea>
+                        <small class="text-muted">Provide a detailed answer to the question above.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted">
+                            <i class="bx bx-info-circle me-1"></i>
+                            Your answers are being auto-saved
+                        </small>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg" onclick="return confirmSubmit()">
+                        <i class="bx bx-check-circle me-2"></i>Submit Quiz
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Auto-save hidden form -->
+    <form id="autoSaveForm" th:action="@{/live-quiz/attempts/{attemptId}/save-answer(attemptId=${attempt.id})}" method="POST" style="display: none;">
+        <input type="hidden" name="questionId" id="saveQuestionId" />
+        <input type="hidden" name="answer" id="saveAnswer" />
+    </form>
+</div>
+
+<!-- JavaScript -->
+<script th:inline="javascript">
+    // Configuration
+    const attemptId = /*[[${attempt.id}]]*/ '';
+    const totalQuestions = /*[[${quiz.questionCount}]]*/ 0;
+    const timeRemainingSeconds = /*[[${timeRemaining}]]*/ 0;
+    const quizType = /*[[${quiz.quizType}]]*/ 'MCQ';
+
+    // State
+    let answeredQuestions = new Set();
+    let timerInterval;
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeTimer();
+        initializeAnswers();
+        startTimer();
+    });
+
+    // Initialize countdown timer
+    function initializeTimer() {
+        if (timeRemainingSeconds > 0) {
+            updateTimerDisplay(timeRemainingSeconds);
+        }
+    }
+
+    // Initialize answers from previous state (if any)
+    function initializeAnswers() {
+        // Check localStorage for saved answers
+        for (let i = 0; i < totalQuestions; i++) {
+            const savedAnswer = localStorage.getItem('quiz-' + attemptId + '-q-' + i);
+            if (savedAnswer) {
+                applySavedAnswer(i, savedAnswer);
+                answeredQuestions.add(i.toString());
+            }
+        }
+        updateProgress();
+    }
+
+    // Apply saved answer to form
+    function applySavedAnswer(questionIndex, answer) {
+        const questionType = document.querySelector('[name="q-' + questionIndex + '"]')?.type;
+
+        if (questionType === 'radio') {
+            const radio = document.querySelector('[name="q-' + questionIndex + '"][value="' + answer + '"]');
+            if (radio) radio.checked = true;
+        } else {
+            const textarea = document.querySelector('[name="q-' + questionIndex + '"]');
+            if (textarea) textarea.value = answer;
+        }
+    }
+
+    // Start countdown timer
+    function startTimer() {
+        let remaining = timeRemainingSeconds;
+
+        timerInterval = setInterval(function() {
+            remaining--;
+
+            if (remaining <= 0) {
+                clearInterval(timerInterval);
+                alert('Time is up! Your quiz will be auto-submitted.');
+                autoSubmit();
+            } else if (remaining <= 60) {
+                // Flash warning when less than 1 minute
+                document.getElementById('timer').classList.add('text-danger');
+            }
+
+            updateTimerDisplay(remaining);
+        }, 1000);
+    }
+
+    // Update timer display
+    function updateTimerDisplay(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        document.getElementById('timer').textContent =
+            String(minutes).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+    }
+
+    // Save answer via AJAX
+    function saveAnswer(element) {
+        const questionIndex = element.name.replace('q-', '');
+        let answer;
+
+        if (element.type === 'radio') {
+            answer = element.value;
+        } else {
+            answer = element.value;
+        }
+
+        // Save to localStorage as backup
+        localStorage.setItem('quiz-' + attemptId + '-q-' + questionIndex, answer);
+
+        // Track answered questions
+        answeredQuestions.add(questionIndex);
+        updateProgress();
+
+        // Auto-save to server (debounced)
+        clearTimeout(window.saveTimeout);
+        window.saveTimeout = setTimeout(function() {
+            sendSaveRequest(questionIndex, answer);
+        }, 1000);
+    }
+
+    // Send save request to server
+    function sendSaveRequest(questionIndex, answer) {
+        const form = document.getElementById('autoSaveForm');
+        document.getElementById('saveQuestionId').value = questionIndex;
+        document.getElementById('saveAnswer').value = answer;
+
+        fetch(form.action, {
+            method: 'POST',
+            body: new FormData(form)
+        }).then(response => {
+            if (response.ok) {
+                console.log('Answer saved');
+            }
+        }).catch(error => {
+            console.error('Save failed:', error);
+        });
+    }
+
+    // Update progress bar
+    function updateProgress() {
+        const count = answeredQuestions.size;
+        const percentage = (count / totalQuestions) * 100;
+
+        document.getElementById('answeredCount').textContent = count;
+        document.getElementById('progressBar').style.width = percentage + '%';
+    }
+
+    // Confirm before submit
+    function confirmSubmit() {
+        const unanswered = totalQuestions - answeredQuestions.size;
+        let message = 'Are you sure you want to submit your quiz?';
+
+        if (unanswered > 0) {
+            message += '\n\nYou have ' + unanswered + ' unanswered question(s)';
+        }
+
+        return confirm(message);
+    }
+
+    // Auto-submit when time expires
+    function autoSubmit() {
+        const form = document.getElementById('quizForm');
+        form.submit();
+    }
+
+    // Warn before leaving
+    window.addEventListener('beforeunload', function(e) {
+        if (answeredQuestions.size > 0) {
+            e.preventDefault();
+            e.returnValue = 'You have unsaved answers. Are you sure you want to leave?';
+            return e.returnValue;
+        }
+    });
+
+    // Clean up localStorage on submit
+    document.getElementById('quizForm').addEventListener('submit', function() {
+        clearInterval(timerInterval);
+        for (let i = 0; i < totalQuestions; i++) {
+            localStorage.removeItem('quiz-' + attemptId + '-q-' + i);
+        }
+    });
+</script>
+
+</html>

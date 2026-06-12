@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="content">
+    <!-- Docs Navigation & Exporter -->
+    <div class="position-fixed top-0 end-0 p-3" style="z-index: 1000;">
+        <div class="dropdown">
+            <button class="btn btn-dark btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bx bx-export me-1"></i>Export
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <button class="dropdown-item" onclick="exportToMarkdown()">
+                        <i class="bx bx-file-blank me-2"></i>Export as Markdown
+                    </button>
+                </li>
+                <li>
+                    <button class="dropdown-item" onclick="printToPDF()">
+                        <i class="bx bx-printer me-2"></i>Print to PDF
+                    </button>
+                </li>
+                <li>
+                    <a class="dropdown-item" th:href="@{/docs/admin}">
+                        <i class="bx bx-cog me-2"></i>Admin Settings
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="container-fluid" id="docs-content">
+        <div class="row">
+            <!-- Sidebar Navigation -->
+            <div class="col-lg-2 border-end bg-light d-none d-lg-block" style="position: sticky; top: 0; height: 100vh;">
+                <nav class="navbar flex-column p-3">
+                    <h5 class="mb-3">
+                        <i class="bx bx-book-open me-2"></i>Study Sync Docs
+                    </h5>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#business" data-bs-toggle="collapse" data-bs-target="#business-menu">
+                                <i class="bx bx-briefcase me-2"></i>Business
+                            </a>
+                            <ul class="collapse nav flex-column ms-3" id="business-menu">
+                                <li class="nav-item"><a class="nav-link small" href="#problem">Problem</a></li>
+                                <li class="nav-item"><a class="nav-link small" href="#solution">Solution</a></li>
+                                <li class="nav-item"><a class="nav-link small" href="#why-now">Why Now</a></li>
+                                <li class="nav-item"><a class="nav-link small" href="#demo">Demo</a></li>
+                                <li class="nav-item"><a class="nav-link small" href="#market">Market</a></li>
+                                <li class="nav-item"><a class="nav-link small" href="#business-model">Business Model</a></li>
+                                <li class="nav-item"><a class="nav-link small" href="#traction">Traction</a></li>
+                                <li class="nav-item"><a class="nav-link small" href="#competition">Competition</a></li>
+                                <li class="nav-item"><a class="nav-link small" href="#vision">Vision</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#team">
+                                <i class="bx bx-user me-2"></i>Team
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#technical">
+                                <i class="bx bx-code me-2"></i>Technical
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#metrics">
+                                <i class="bx bx-chart me-2"></i>Live Metrics
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-lg-10 py-5 px-lg-5">
+                <!-- Header -->
+                <div class="mb-5">
+                    <h1 class="display-4 fw-bold mb-2">Study Sync</h1>
+                    <p class="lead text-muted">AI-Powered Quiz Generation Platform for Educational Excellence</p>
+                    <div class="d-flex gap-3 mt-3">
+                        <a th:href="@{/}" class="btn btn-outline-primary btn-sm">
+                            <i class="bx bx-home me-1"></i>Back to App
+                        </a>
+                        <span class="text-muted small align-self-center">v1.0.0</span>
+                    </div>
+                </div>
+
+                <!-- Business Section -->
+                <section id="business" class="mb-5">
+                    <h2 class="border-bottom pb-2 mb-4">
+                        <i class="bx bx-briefcase me-2"></i>Business Overview
+                    </h2>
+
+                    <!-- Problem -->
+                    <div id="problem" class="mb-4">
+                        <h4 class="mb-3">The Problem</h4>
+                        <p>Teachers spend hours creating repetitive quizzes manually. Educational institutions lack scalable tools for assessment creation. Students need personalized learning experiences but resources are limited.</p>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item"><i class="bx bx-x text-danger me-2"></i>Time-consuming quiz creation (2-3 hours per assessment)</li>
+                            <li class="list-group-item"><i class="bx bx-x text-danger me-2"></i>Limited question variety and personalization</li>
+                            <li class="list-group-item"><i class="bx bx-x text-danger me-2"></i>No automated grading for subjective questions</li>
+                            <li class="list-group-item"><i class="bx bx-x text-danger me-2"></i>Fragmented learning management systems</li>
+                        </ul>
+                    </div>
+
+                    <!-- Solution -->
+                    <div id="solution" class="mb-4">
+                        <h4 class="mb-3">Our Solution</h4>
+                        <p>Study Sync automates quiz generation using advanced AI, enabling teachers to create comprehensive assessments in seconds from PDF materials.</p>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <i class="bx bx-magic-wand fs-2 text-primary mb-2"></i>
+                                        <h5 class="card-title">AI-Powered</h5>
+                                        <p class="card-text small">Generate quizzes automatically from course materials using Llama-3 via Groq API</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <i class="bx bx-time fs-2 text-success mb-2"></i>
+                                        <h5 class="card-title">Instant Creation</h5>
+                                        <p class="card-text small">Create complete assessments in under 60 seconds with multiple question types</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <i class="bx bx-users fs-2 text-info mb-2"></i>
+                                        <h5 class="card-title">Collaborative</h5>
+                                        <p class="card-text small">Live quiz sessions, real-time leaderboards, and classroom management</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Why Now -->
+                    <div id="why-now" class="mb-4">
+                        <h4 class="mb-3">Why Now</h4>
+                        <div class="alert alert-info">
+                            <ul class="mb-0">
+                                <li><strong>AI Adoption:</strong> Educational AI market projected to reach $25B by 2030</li>
+                                <li><strong>Remote Learning:</strong> Post-pandemic shift to digital assessment tools</li>
+                                <li><strong>Teacher Shortage:</strong> Global shortage of 69 million teachers requires automation</li>
+                                <li><strong>Technology Ready:</strong> LLMs now capable of high-quality educational content generation</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Demo -->
+                    <div id="demo" class="mb-4">
+                        <h4 class="mb-3">Product Demo</h4>
+                        <div class="ratio ratio-16x9">
+                            <div class="card bg-light">
+                                <div class="card-body d-flex align-items-center justify-content-center">
+                                    <div class="text-center">
+                                        <i class="bx bx-play-circle display-4 text-muted"></i>
+                                        <p class="mt-2">Product Demo Video</p>
+                                        <small class="text-muted">Interactive demo available at <a th:href="@{/}">studysync.app</a></small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Market Opportunity -->
+                    <div id="market" class="mb-4">
+                        <h4 class="mb-3">Market Opportunity</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-primary">$8.2B</h5>
+                                        <p class="card-text">EdTech Assessment Market (2024)</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-success">23% CAGR</h5>
+                                        <p class="card-text">Expected growth through 2030</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p><strong>Target Segments:</strong></p>
+                        <ul>
+                            <li>K-12 Educational Institutions</li>
+                            <li>Universities and Colleges</li>
+                            <li>Corporate Training Programs</li>
+                            <li>Tutoring Centers</li>
+                        </ul>
+                    </div>
+
+                    <!-- Business Model -->
+                    <div id="business-model" class="mb-4">
+                        <h4 class="mb-3">Business Model</h4>
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Freemium + Pro Subscription</h5>
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <h6 class="text-success">Free Tier</h6>
+                                        <ul class="small">
+                                            <li>5 quizzes per month</li>
+                                            <li>Basic question types</li>
+                                            <li>Up to 50 students per classroom</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="text-primary">Pro Tier - $9/month</h6>
+                                        <ul class="small">
+                                            <li>Unlimited quizzes</li>
+                                            <li>AI-powered subjective grading</li>
+                                            <li>Unlimited students & classrooms</li>
+                                            <li>Advanced analytics</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Traction -->
+                    <div id="traction" class="mb-4">
+                        <h4 class="mb-3">Traction & Live Metrics</h4>
+                        <div class="row" id="metrics">
+                            <div class="col-md-3">
+                                <div class="card text-center mb-3">
+                                    <div class="card-body">
+                                        <h3 class="display-6 fw-bold text-primary counter" th:data-target="${stats.totalUsers}">0</h3>
+                                        <p class="card-text small text-muted">Total Users</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center mb-3">
+                                    <div class="card-body">
+                                        <h3 class="display-6 fw-bold text-success counter" th:data-target="${stats.totalClassrooms}">0</h3>
+                                        <p class="card-text small text-muted">Classrooms</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center mb-3">
+                                    <div class="card-body">
+                                        <h3 class="display-6 fw-bold text-info counter" th:data-target="${stats.totalQuizzes}">0</h3>
+                                        <p class="card-text small text-muted">Quizzes Created</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center mb-3">
+                                    <div class="card-body">
+                                        <h3 class="display-6 fw-bold text-warning counter" th:data-target="${stats.totalAttempts}">0</h3>
+                                        <p class="card-text small text-muted">Quiz Attempts</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Competition -->
+                    <div id="competition" class="mb-4">
+                        <h4 class="mb-3">Competitive Landscape</h4>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Competitor</th>
+                                    <th>Focus</th>
+                                    <th>Study Sync Advantage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Quizlet</td>
+                                    <td>Flashcard-based learning</td>
+                                    <td>AI-generated assessments from PDFs</td>
+                                </tr>
+                                <tr>
+                                    <td>Kahoot</td>
+                                    <td>Gamified quizzes</td>
+                                    <td>Automated creation, AI grading</td>
+                                </tr>
+                                <tr>
+                                    <td>Google Forms</td>
+                                    <td>Generic form builder</td>
+                                    <td>Edu-specialized, AI-powered</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Vision -->
+                    <div id="vision" class="mb-4">
+                        <h4 class="mb-3">Vision</h4>
+                        <div class="alert alert-success">
+                            <strong>Our Mission:</strong> To democratize access to high-quality educational assessments by leveraging AI, enabling every educator to create personalized learning experiences at scale.
+                        </div>
+                        <p><strong>Next 12 Months:</strong></p>
+                        <ul>
+                            <li>Mobile application launch</li>
+                            <li>Integration with major LMS platforms (Canvas, Blackboard)</li>
+                            <li>Advanced analytics dashboard</li>
+                            <li>Multi-language support</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- Team Section -->
+                <section id="team" class="mb-5">
+                    <h2 class="border-bottom pb-2 mb-4">
+                        <i class="bx bx-user me-2"></i>Team Hallucinators
+                    </h2>
+                    <div class="row">
+                        <!-- Mahedy Hasan -->
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <div class="avatar avatar-lg mb-3">
+                                        <svg width="80" height="80" viewBox="0 0 80 80" class="rounded-circle bg-label-primary">
+                                            <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#696cff" font-size="28" font-weight="bold">MH</text>
+                                        </svg>
+                                    </div>
+                                    <h5 class="card-title">Mahedy Hasan</h5>
+                                    <p class="text-muted small mb-2">Southeast University</p>
+                                    <p class="badge bg-label-primary mb-2">Project Lead & Backend Architect</p>
+                                    <p class="card-text small text-muted">mahidihasan635@gmail.com</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Nabil Tawsif -->
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <div class="avatar avatar-lg mb-3">
+                                        <svg width="80" height="80" viewBox="0 0 80 80" class="rounded-circle bg-label-success">
+                                            <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#71DD37" font-size="28" font-weight="bold">NT</text>
+                                        </svg>
+                                    </div>
+                                    <h5 class="card-title">Nabil Tawsif</h5>
+                                    <p class="text-muted small mb-2">Nanchang University</p>
+                                    <p class="badge bg-label-success mb-2">Frontend Developer & UI Designer</p>
+                                    <p class="card-text small text-muted">nabiltawsif@gmail.com</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Al Mahdi -->
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <div class="avatar avatar-lg mb-3">
+                                        <svg width="80" height="80" viewBox="0 0 80 80" class="rounded-circle bg-label-info">
+                                            <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#03C3EC" font-size="28" font-weight="bold">AM</text>
+                                        </svg>
+                                    </div>
+                                    <h5 class="card-title">Al Mahdi</h5>
+                                    <p class="text-muted small mb-2">BRAC University</p>
+                                    <p class="badge bg-label-info mb-2">WebSocket Architect & Security Engineer</p>
+                                    <p class="card-text small text-muted">almahdi@gmail.com</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Shariat Islam Shojoy -->
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <div class="avatar avatar-lg mb-3">
+                                        <svg width="80" height="80" viewBox="0 0 80 80" class="rounded-circle bg-label-warning">
+                                            <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#FF9F43" font-size="28" font-weight="bold">SS</text>
+                                        </svg>
+                                    </div>
+                                    <h5 class="card-title">Shariat Islam Shojoy</h5>
+                                    <p class="text-muted small mb-2">Mawlana Bhashani Science and Technology University</p>
+                                    <p class="badge bg-label-warning mb-2">AI Prompt Engineer & QA</p>
+                                    <p class="card-text small text-muted">shojoy@gmail.com</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rukaiya Sultana -->
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <div class="avatar avatar-lg mb-3">
+                                        <svg width="80" height="80" viewBox="0 0 80 80" class="rounded-circle bg-label-danger">
+                                            <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#FF3E1D" font-size="28" font-weight="bold">RS</text>
+                                        </svg>
+                                    </div>
+                                    <h5 class="card-title">Rukaiya Sultana</h5>
+                                    <p class="text-muted small mb-2">Southeast University</p>
+                                    <p class="badge bg-label-danger mb-2">Database Designer & Systems Engineer</p>
+                                    <p class="card-text small text-muted">rukaiya@gmail.com</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Technical Section -->
+                <section id="technical" class="mb-5">
+                    <h2 class="border-bottom pb-2 mb-4">
+                        <i class="bx bx-code me-2"></i>Technical Documentation
+                    </h2>
+
+                    <!-- Tech Stack -->
+                    <div class="mb-4">
+                        <h4 class="mb-3">Technology Stack</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-primary text-white">Backend</div>
+                                    <div class="card-body">
+                                        <ul class="mb-0">
+                                            <li>Java 25 with Spring Boot 3.5</li>
+                                            <li>MongoDB Atlas for data persistence</li>
+                                            <li>Spring Security with JWT authentication</li>
+                                            <li>WebSocket for real-time quiz sessions</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-success text-white">AI & Integration</div>
+                                    <div class="card-body">
+                                        <ul class="mb-0">
+                                            <li>Spring AI with Groq API (Llama-3)</li>
+                                            <li>Apache PDFBox for document processing</li>
+                                            <li>Stripe for payment processing</li>
+                                            <li>Thymeleaf for server-side rendering</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- System Architecture -->
+                    <div class="mb-4">
+                        <h4 class="mb-3">System Architecture</h4>
+                        <div class="mermaid">
+                            graph TB
+                                Client[Browser Client] -->|HTTP/WebSocket| LoadBalancer[Load Balancer]
+                                LoadBalancer --> Controllers[Spring Boot Controllers]
+                                Controllers --> Services[Service Layer]
+                                Controllers --> Security[Spring Security + JWT]
+                                Services --> MongoDB[MongoDB Atlas]
+                                Services --> Stripe[Stripe API]
+                                Services --> Groq[Groq API - Llama-3]
+                                Services --> PDFBox[Apache PDFBox]
+
+                                style Client fill:#e1f5ff
+                                style Controllers fill:#fff3e0
+                                style Services fill:#e8f5e9
+                                style MongoDB fill:#fce4ec
+                                style Groq fill:#f3e5f5
+                            </div>
+                    </div>
+
+                    <!-- Data Flow -->
+                    <div class="mb-4">
+                        <h4 class="mb-3">Quiz Generation Data Flow</h4>
+                        <div class="mermaid">
+                            flowchart TD
+                                A[PDF Upload] --> B[Apache PDFBox Extraction]
+                                B --> C[Text Processing]
+                                C --> D[Sentence Boundary Detection]
+                                D --> E[Content Truncation]
+                                E --> F[Spring AI Prompt Builder]
+                                F --> G[Groq API Request]
+                                G --> H[Llama-3 Processing]
+                                H --> I[JSON Response]
+                                I --> J[Question Parsing]
+                                J --> K[MongoDB Storage]
+                                K --> L[Quiz Available]
+
+                                style A fill:#e3f2fd
+                                style B fill:#fff3e0
+                                style F fill:#e8f5e9
+                                style G fill:#f3e5f5
+                                style K fill:#fce4ec
+                            </div>
+                    </div>
+
+                    <!-- API Documentation -->
+                    <div class="mb-4">
+                        <h4 class="mb-3">Key API Endpoints</h4>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Endpoint</th>
+                                        <th>Method</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>/api/quiz/generate</code></td>
+                                        <td>POST</td>
+                                        <td>Generate quiz from PDF</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>/api/quiz/{id}/submit</code></td>
+                                        <td>POST</td>
+                                        <td>Submit quiz for AI grading</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>/live-quiz/{id}/start</code></td>
+                                        <td>POST</td>
+                                        <td>Start live quiz session</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>/ws/quiz/{id}</code></td>
+                                        <td>WebSocket</td>
+                                        <td>Real-time quiz updates</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Footer -->
+                <footer class="mt-5 pt-4 border-top">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="text-muted small mb-0">
+                                <i class="bx bx-copyright me-1"></i>2024 Study Sync. All rights reserved.
+                            </p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <p class="text-muted small mb-0">
+                                Built with <i class="bx bx-heart text-danger"></i> by Team Hallucinators
+                            </p>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mermaid JS for diagrams -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+<script>
+// Initialize Mermaid
+mermaid.initialize({
+    startOnLoad: true,
+    theme: 'default',
+    securityLevel: 'loose'
+});
+
+// Animate counters
+document.addEventListener('DOMContentLoaded', function() {
+    const counters = document.querySelectorAll('.counter');
+    counters.forEach(counter => {
+        const target = parseInt(counter.getAttribute('data-target'));
+        const duration = 2000; // 2 seconds
+        const step = target / (duration / 16); // 60fps
+        let current = 0;
+
+        const updateCounter = () => {
+            current += step;
+            if (current < target) {
+                counter.textContent = Math.floor(current);
+                requestAnimationFrame(updateCounter);
+            } else {
+                counter.textContent = target;
+            }
+        };
+        updateCounter();
+    });
+});
+
+// Export to Markdown
+function exportToMarkdown() {
+    const content = document.getElementById('docs-content').innerText;
+    const blob = new Blob([content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'studysync-docs.md';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// Print to PDF
+function printToPDF() {
+    window.print();
+}
+</script>
+
+<style>
+@media print {
+    .position-fixed { display: none !important; }
+    .d-lg-block { display: block !important; }
+    .col-lg-2 { width: 20% !important; float: left !important; }
+    .col-lg-10 { width: 80% !important; float: left !important; }
+}
+</style>
+
+</html>

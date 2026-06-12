@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="content">
+    <div class="d-flex align-items-center mb-4">
+        <a th:href="@{/live-quiz/{id}(id=${session.id})}" class="text-decoration-none me-2">
+            <i class="bx bx-arrow-back fs-4"></i>
+        </a>
+        <div>
+            <h4 class="mb-0">Quiz Results</h4>
+            <small class="text-muted" th:text="${session.title}">Session Title</small>
+        </div>
+    </div>
+
+    <!-- Score Summary Card -->
+    <div class="card mb-4" th:if="${attempt.status.name == 'GRADED'}">
+        <div class="card-body text-center py-5">
+            <div class="mb-3">
+                <i class="bx bx-trophy display-1 text-warning"></i>
+            </div>
+            <h2 class="mb-2">
+                <span th:text="${#numbers.formatDecimal(attempt.scorePercentage, 1, 1)}">0.0</span>%
+            </h2>
+            <p class="text-muted mb-3">
+                You scored <strong th:text="${attempt.marksEarned}">0</strong> out of
+                <strong th:text="${attempt.totalMarks}">0</strong> points
+            </p>
+
+            <div class="row justify-content-center g-4 mb-4">
+                <div class="col-auto">
+                    <div class="text-success">
+                        <i class="bx bx-check-circle fs-4"></i>
+                        <span class="ms-1" th:text="${attempt.correctAnswers}">0</span>
+                        <small class="text-muted">Correct</small>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <div class="text-info">
+                        <i class="bx bx-minus-circle fs-4"></i>
+                        <span class="ms-1" th:text="${attempt.partialAnswers}">0</span>
+                        <small class="text-muted">Partial</small>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <div class="text-danger">
+                        <i class="bx bx-x-circle fs-4"></i>
+                        <span class="ms-1" th:text="${attempt.wrongAnswers}">0</span>
+                        <small class="text-muted">Wrong</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="small text-muted">
+                <i class="bx bx-time me-1"></i>
+                Time taken: <span th:text="${attempt.timeTakenSeconds / 60}">0</span> minutes
+            </div>
+        </div>
+    </div>
+
+    <!-- Questions Review -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Answer Review</h5>
+        </div>
+        <div class="card-body">
+            <div th:each="question, qStat : ${quiz.questions}" class="border-bottom py-3 last-border-0">
+                <!-- Question -->
+                <div class="d-flex align-items-start mb-2">
+                    <span class="badge bg-label-secondary me-2" th:text="${qStat.count}">1</span>
+                    <h6 class="mb-0" th:text="${question.question}">Question text?</h6>
+                    <span class="ms-auto"
+                          th:class="${attempt.gradingResults.get(qStat.index.toString())?.correct ? 'badge bg-label-success' : 'badge bg-label-danger'}"
+                          th:if="${attempt.gradingResults.get(qStat.index.toString()) != null}">
+                        <i th:class="${attempt.gradingResults.get(qStat.index.toString())?.correct ? 'bx bx-check' : 'bx bx-x'}"></i>
+                        <span th:text="${attempt.gradingResults.get(qStat.index.toString())?.marksEarned} + '/' + ${attempt.gradingResults.get(qStat.index.toString())?.totalMarks}">0/1</span>
+                    </span>
+                </div>
+
+                <!-- MCQ Options -->
+                <div th:if="${question.questionType == 'MCQ'}" class="ms-4 mb-2">
+                    <div class="row">
+                        <div class="col-md-6" th:each="option : ${{'A', 'B', 'C', 'D'}}">
+                            <div class="form-check" th:classappend="${option == question.correctAnswer ? 'text-success' : ''}">
+                                <span class="badge bg-label-secondary me-2" th:text="${option}">A</span>
+                                <span th:text="${{
+                                    option == 'A' ? question.optionA :
+                                    option == 'B' ? question.optionB :
+                                    option == 'C' ? question.optionC : question.optionD
+                                }}">Option</span>
+                                <i th:if="${option == question.correctAnswer}" class="bx bx-check-circle text-success ms-2"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CQ Answer -->
+                <div th:if="${question.questionType == 'CQ'}" class="ms-4 mb-2">
+                    <div class="bg-light p-3 rounded">
+                        <small class="text-muted d-block mb-1">Your answer:</small>
+                        <p class="mb-0" th:text="${attempt.answers.get(qStat.index.toString())}">Student's answer</p>
+                    </div>
+                </div>
+
+                <!-- Correct Answer Display -->
+                <div th:if="${attempt.gradingResults.get(qStat.index.toString()) != null and attempt.gradingResults.get(qStat.index.toString()).feedback != null}"
+                     class="ms-4">
+                    <small class="text-muted" th:text="${attempt.gradingResults.get(qStat.index.toString()).feedback}">Feedback</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="card mt-4">
+        <div class="card-body">
+            <div class="d-flex gap-2">
+                <a th:href="@{/live-quiz/{id}/leaderboard(id=${session.id})}" class="btn btn-outline-primary">
+                    <i class="bx bx-bar-chart me-2"></i>View Leaderboard
+                </a>
+                <a th:href="@{/classroom/{id}(id=${session.classroomId})}" class="btn btn-primary">
+                    <i class="bx bx-home me-2"></i>Back to Classroom
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>

@@ -47,7 +47,7 @@
                             </span>
                             <span class="text-muted">
                                 <i class="bx bx-time me-1"></i>
-                                <span th:text="${session.durationSeconds / 60} + ' minutes'">30 minutes</span>
+                                <span th:text="${session.durationSeconds != null ? (session.durationSeconds / 60) + ' minutes' : 'N/A'}">30 minutes</span>
                             </span>
                         </div>
                         <p class="text-muted small mb-0" th:if="${session.instructions != null and !session.instructions.isEmpty()}"
@@ -55,7 +55,7 @@
                     </div>
                 </div>
                 <div class="col-md-4 text-md-end">
-                    <div th:if="${isTeacher}">
+                    <div th:if="${isOwner}">
                         <!-- Teacher Controls based on status -->
                         <div th:if="${session.status == T(bd.edu.seu.studysync.model.LiveQuizSession.SessionStatus).SCHEDULED}">
                             <form th:action="@{/live-quiz/{id}/open-lobby(id=${session.id})}" method="POST">
@@ -99,14 +99,12 @@
                         </div>
                     </div>
 
-                    <div th:if="${isStudent}">
+                    <div th:if="${isMember}">
                         <!-- Student Actions -->
                         <div th:if="${session.status == T(bd.edu.seu.studysync.model.LiveQuizSession.SessionStatus).LOBBY_OPEN or session.status == T(bd.edu.seu.studysync.model.LiveQuizSession.SessionStatus).LIVE}">
-                            <form th:action="@{/live-quiz/{id}/join(id=${session.id})}" method="POST">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bx bx-door-open me-2"></i>Join Quiz
-                                </button>
-                            </form>
+                            <a th:href="@{/live-quiz/{id}/take(id=${session.id})}" class="btn btn-primary">
+                                <i class="bx bx-edit me-2"></i>Take Quiz
+                            </a>
                         </div>
                         <div th:if="${session.status == T(bd.edu.seu.studysync.model.LiveQuizSession.SessionStatus).SCHEDULED}">
                             <button class="btn btn-outline-secondary" disabled>
@@ -114,9 +112,9 @@
                             </button>
                         </div>
                         <div th:if="${session.status == T(bd.edu.seu.studysync.model.LiveQuizSession.SessionStatus).COMPLETED}">
-                            <button class="btn btn-success" disabled>
-                                <i class="bx bx-check-circle me-2"></i>Quiz Completed
-                            </button>
+                            <a th:href="@{/live-quiz/{id}/leaderboard(id=${session.id})}" class="btn btn-outline-primary">
+                                <i class="bx bx-bar-chart me-2"></i>View Results
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -128,7 +126,7 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Participants</h5>
-            <span class="badge bg-label-primary" th:text="${session.participantCount} + ' / ' + (session.maxParticipants > 0 ? session.maxParticipants : '∞')">
+            <span class="badge bg-label-primary" th:text="${session.participantCount != null ? session.participantCount : 0} + ' / ' + (${session.maxParticipants != null and session.maxParticipants > 0} ? ${session.maxParticipants} : '∞')">
                 0 / ∞
             </span>
         </div>
@@ -137,10 +135,10 @@
                 <i class="bx bx-user-x display-6 mb-2"></i>
                 <p>No participants yet</p>
             </div>
-            <div th:if="${session.participantCount > 0}">
+            <div th:if="${session.participantCount > 0 and session.participantIds != null}">
                 <div class="d-flex flex-wrap gap-2">
-                    <span class="badge bg-label-secondary" th:each="participantId : ${session.participantIds}"
-                          th:text="'Participant ' + ${participantIdStat.count}">
+                    <span class="badge bg-label-secondary" th:each="participantId, stat : ${session.participantIds}"
+                          th:text="'Participant ' + ${stat.count}">
                         Participant
                     </span>
                 </div>

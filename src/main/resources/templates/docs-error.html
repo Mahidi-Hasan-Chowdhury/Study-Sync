@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="content">
+    <div class="container-fluid py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6 text-center">
+                <div class="mb-4">
+                    <i class="bx bx-lock-alt display-1 text-danger"></i>
+                </div>
+                <h1 class="display-4 fw-bold mb-3">Documentation Restricted</h1>
+                <p class="lead text-muted mb-4">
+                    The documentation window is currently closed. Please check back during the available access period.
+                </p>
+                <div class="alert alert-info d-inline-block">
+                    <i class="bx bx-info-circle me-2"></i>
+                    <span>Access is controlled by system administrators. Contact support if you believe this is an error.</span>
+                </div>
+                <div class="mt-5">
+                    <a th:href="@{/}" class="btn btn-primary btn-lg">
+                        <i class="bx bx-home me-2"></i>Return to Homepage
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="content">
+    <div class="container-fluid py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center mb-4">
+                    <a th:href="@{/docs}" class="text-decoration-none me-3">
+                        <i class="bx bx-arrow-back fs-4"></i>
+                    </a>
+                    <div>
+                        <h4 class="mb-0">Documentation Admin Control</h4>
+                        <small class="text-muted">Manage documentation access settings</small>
+                    </div>
+                </div>
+
+                <!-- Alert Messages -->
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bx bx-error-circle me-2"></i>
+                    <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bx bx-check-circle me-2"></i>
+                    <span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Settings Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Access Configuration</h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/docs/admin/save}" method="POST">
+                            <!-- Public Access Toggle -->
+                            <div class="mb-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="docsPublic" name="docsPublic"
+                                           th:checked="${config.docsPublic}">
+                                    <label class="form-check-label" for="docsPublic">
+                                        <strong>Public Access Enabled</strong>
+                                    </label>
+                                </div>
+                                <small class="text-muted">When enabled, documentation is publicly accessible. When disabled, only available during scheduled window.</small>
+                            </div>
+
+                            <!-- Scheduled Window -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Scheduled Access Window</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label for="availableFrom" class="form-label text-muted small">Start Date/Time</label>
+                                        <input type="datetime-local" class="form-control" id="availableFrom" name="availableFrom"
+                                               th:value="${#temporals.format(config.availableFrom, 'yyyy-MM-dd\'T\'HH:mm')}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="availableTo" class="form-label text-muted small">End Date/Time</label>
+                                        <input type="datetime-local" class="form-control" id="availableTo" name="availableTo"
+                                               th:value="${#temporals.format(config.availableTo, 'yyyy-MM-dd\'T\'HH:mm')}">
+                                    </div>
+                                </div>
+                                <small class="text-muted">Documentation is accessible during this window when public access is disabled.</small>
+                            </div>
+
+                            <!-- Admin Passcode -->
+                            <div class="mb-4">
+                                <label for="adminPasscode" class="form-label fw-bold">New Admin Passcode</label>
+                                <input type="text" class="form-control" id="adminPasscode" name="adminPasscode"
+                                       th:value="${config.adminPasscode}" placeholder="Enter new passcode">
+                                <small class="text-muted">Passcode for quick admin access to documentation controls.</small>
+                            </div>
+
+                            <!-- Current Passcode Verification -->
+                            <div class="mb-4">
+                                <label for="currentPasscode" class="form-label fw-bold">Current Passcode <span class="text-danger">*</span></label>
+                                <input type="password" class="form-control" id="currentPasscode" name="currentPasscode"
+                                       required placeholder="Enter current passcode to save changes">
+                                <small class="text-muted">Enter the current admin passcode to verify and save changes.</small>
+                            </div>
+
+                            <!-- Save Button -->
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bx bx-save me-2"></i>Save Configuration
+                                </button>
+                                <a th:href="@{/docs}" class="btn btn-outline-secondary">
+                                    <i class="bx bx-x me-2"></i>Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Current Status Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Current Status</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <i class="bx bx-shield-quarter fs-1 me-3" th:classappend="${config.docsPublic} ? 'text-success' : 'text-warning'"></i>
+                            <div>
+                                <h6 class="mb-1">Documentation Access</h6>
+                                <span class="badge" th:classappend="${config.docsPublic} ? 'bg-label-success' : 'bg-label-warning'"
+                                      th:text="${config.docsPublic} ? 'Publicly Accessible' : 'Restricted Access'">
+                                    Publicly Accessible
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>

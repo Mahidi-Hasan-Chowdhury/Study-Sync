@@ -1,9 +1,12 @@
 package bd.edu.seu.studysync.controller;
 
+import bd.edu.seu.studysync.model.LiveQuizAttempt;
 import bd.edu.seu.studysync.model.LiveQuizSession;
+import bd.edu.seu.studysync.model.Question;
 import bd.edu.seu.studysync.model.Quiz;
 import bd.edu.seu.studysync.model.User;
 import bd.edu.seu.studysync.service.ClassroomService;
+import bd.edu.seu.studysync.service.LiveQuizAttemptService;
 import bd.edu.seu.studysync.service.LiveQuizSessionService;
 import bd.edu.seu.studysync.service.QuizAiService;
 import bd.edu.seu.studysync.service.UserService;
@@ -34,6 +37,7 @@ public class LiveQuizController {
     private final UserService userService;
     private final QuizAiService quizAiService;
     private final ClassroomService classroomService;
+    private final LiveQuizAttemptService attemptService;
 
     // ==================== SCHEDULE PAGE ====================
 
@@ -52,11 +56,8 @@ public class LiveQuizController {
         // Get user's quizzes
         List<Quiz> userQuizzes = quizAiService.getQuizzesByUserId(user.getId());
 
-        // Get user's classrooms (if teacher)
-        List<?> classrooms = List.of();
-        if (user.isTeacher()) {
-            classrooms = classroomService.getTeacherClassrooms(user.getId());
-        }
+        // Get user's classrooms (where user is owner)
+        List<?> classrooms = classroomService.getTeacherClassrooms(user.getId());
 
         model.addAttribute("quizzes", userQuizzes);
         model.addAttribute("classrooms", classrooms);
@@ -81,16 +82,19 @@ public class LiveQuizController {
 
         User user = currentUser.get();
 
-        // Validate teacher access
-        if (!classroomService.isTeacherOfClassroom(id, user.getId())) {
+        // Get classroom details first
+        var classroom = classroomService.getClassroomById(id);
+        if (classroom.isEmpty()) {
+            return "redirect:/classroom?error=Classroom+not+found";
+        }
+
+        // Validate owner access (only owner can schedule quizzes)
+        if (!classroom.get().getTeacherId().equals(user.getId())) {
             return "redirect:/classroom?error=Not+authorized";
         }
 
         // Get user's quizzes
         List<Quiz> userQuizzes = quizAiService.getQuizzesByUserId(user.getId());
-
-        // Get classroom details
-        var classroom = classroomService.getClassroomById(id);
 
         // Ensure classroomId is set (from path or flash attribute)
         String classroomId = (String) model.getAttribute("classroomId");
@@ -99,7 +103,7 @@ public class LiveQuizController {
         }
 
         model.addAttribute("classroomId", classroomId);
-        model.addAttribute("classroom", classroom.isPresent() ? classroom.get() : null);
+        model.addAttribute("classroom", classroom.get());
         model.addAttribute("quizzes", userQuizzes);
         model.addAttribute("currentUser", user);
         model.addAttribute("contentPage", "live-quiz-schedule-classroom");
@@ -193,15 +197,22 @@ public class LiveQuizController {
 
         // Get quiz and classroom details
         Quiz quiz = quizAiService.getQuizById(session.getQuizId());
+
+        // Get classroom to check membership
         var classroom = classroomService.getClassroomById(session.getClassroomId());
 
-        // Check if user is teacher
-        boolean isTeacher = session.getTeacherId().equals(user.getId());
+        // Check if user is owner (creator of the classroom/session)
+        boolean isOwner = session.getTeacherId().equals(user.getId());
+
+        // Check if user is member (joined the classroom)
+        boolean isMember = classroom.isPresent() &&
+                classroom.get().getStudentIds() != null &&
+                classroom.get().getStudentIds().contains(user.getId());
 
         model.addAttribute("session", session);
         model.addAttribute("quiz", quiz);
-        model.addAttribute("classroom", classroom.isPresent() ? classroom.get() : null);
-        model.addAttribute("isTeacher", isTeacher);
+        model.addAttribute("isOwner", isOwner);
+        model.addAttribute("isMember", isMember);
         model.addAttribute("currentUser", user);
         model.addAttribute("contentPage", "live-quiz-details");
         return "layout";
@@ -233,16 +244,20 @@ public class LiveQuizController {
 
         User user = currentUser.get();
 
-        List<LiveQuizSession> sessions;
-        if (user.isTeacher()) {
-            sessions = liveQuizSessionService.getSessionsByTeacher(user.getId());
-        } else {
-            sessions = liveQuizSessionService.getSessionsForStudent(user.getId());
+        // Get all sessions: where user is owner (teacher) or member of the classroom
+        List<LiveQuizSession> ownerSessions = liveQuizSessionService.getSessionsByTeacher(user.getId());
+        List<LiveQuizSession> memberSessions = liveQuizSessionService.getSessionsForStudent(user.getId());
+
+        // Combine and deduplicate
+        List<LiveQuizSession> allSessions = new java.util.ArrayList<>(ownerSessions);
+        for (LiveQuizSession session : memberSessions) {
+            if (!allSessions.contains(session)) {
+                allSessions.add(session);
+            }
         }
 
-        model.addAttribute("sessions", sessions);
+        model.addAttribute("sessions", allSessions);
         model.addAttribute("currentUser", user);
-        model.addAttribute("isTeacher", user.isTeacher());
         model.addAttribute("contentPage", "live-quiz-list");
         return "layout";
     }
@@ -259,9 +274,18 @@ public class LiveQuizController {
 
         User user = currentUser.get();
 
-        // Validate access
-        if (!classroomService.isTeacherOfClassroom(id, user.getId()) &&
-                !classroomService.isStudentInClassroom(id, user.getId())) {
+        // Get classroom to check access
+        var classroom = classroomService.getClassroomById(id);
+        if (classroom.isEmpty()) {
+            return "redirect:/classroom?error=Classroom+not+found";
+        }
+
+        // Validate access (owner or member)
+        boolean isOwner = classroom.get().getTeacherId().equals(user.getId());
+        boolean isMember = classroom.get().getStudentIds() != null &&
+                classroom.get().getStudentIds().contains(user.getId());
+
+        if (!isOwner && !isMember) {
             return "redirect:/classroom?error=Not+a+member";
         }
 
@@ -269,7 +293,8 @@ public class LiveQuizController {
 
         model.addAttribute("classroomId", id);
         model.addAttribute("sessions", sessions);
-        model.addAttribute("isTeacher", classroomService.isTeacherOfClassroom(id, user.getId()));
+        model.addAttribute("isOwner", isOwner);
+        model.addAttribute("isMember", isMember);
         model.addAttribute("currentUser", user);
         model.addAttribute("contentPage", "live-quiz-classroom-list");
         return "layout";
@@ -403,6 +428,194 @@ public class LiveQuizController {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/live-quiz/" + id;
         }
+    }
+
+    // ==================== QUIZ TAKING ====================
+
+    /**
+     * Take a live quiz (student view)
+     */
+    @GetMapping("/live-quiz/{id}/take")
+    public String takeQuiz(@PathVariable String id, Model model) {
+        Optional<User> currentUser = userService.getCurrentUser();
+        if (currentUser.isEmpty()) {
+            return "redirect:/login";
+        }
+
+        User user = currentUser.get();
+
+        // Get session with access validation
+        Optional<LiveQuizSession> sessionOpt = liveQuizSessionService.getSessionById(id);
+        if (sessionOpt.isEmpty()) {
+            return "redirect:/classroom?error=Session+not+found";
+        }
+
+        LiveQuizSession session = sessionOpt.get();
+
+        // Get classroom to check membership
+        var classroom = classroomService.getClassroomById(session.getClassroomId());
+
+        // Validate access (owner or member)
+        boolean isOwner = session.getTeacherId().equals(user.getId());
+        boolean isMember = classroom.isPresent() &&
+                classroom.get().getStudentIds() != null &&
+                classroom.get().getStudentIds().contains(user.getId());
+
+        if (!isOwner && !isMember) {
+            return "redirect:/classroom?error=Not+authorized";
+        }
+
+        // Check if student can take quiz
+        if (!attemptService.canStudentTakeQuiz(id, user.getId())) {
+            return "redirect:/live-quiz/" + id + "?error=Cannot+take+quiz+at+this+time";
+        }
+
+        // Start or get existing attempt
+        LiveQuizAttempt attempt;
+        Optional<LiveQuizAttempt> existingAttempt = attemptService.getCurrentAttempt(id, user.getId());
+
+        if (existingAttempt.isPresent()) {
+            attempt = existingAttempt.get();
+        } else {
+            attempt = attemptService.startAttempt(id, user.getId());
+        }
+
+        // Get quiz questions
+        Quiz quiz = quizAiService.getQuizById(session.getQuizId());
+        if (quiz == null) {
+            return "redirect:/classroom?error=Quiz+not+found";
+        }
+
+        // Calculate time remaining
+        long timeRemaining = attemptService.getTimeRemaining(attempt.getId());
+
+        model.addAttribute("session", session);
+        model.addAttribute("quiz", quiz);
+        model.addAttribute("attempt", attempt);
+        model.addAttribute("timeRemaining", timeRemaining);
+        model.addAttribute("currentUser", user);
+        model.addAttribute("contentPage", "live-quiz-take");
+        return "layout";
+    }
+
+    /**
+     * Save an answer (auto-save during quiz)
+     */
+    @PostMapping("/live-quiz/attempts/{attemptId}/save-answer")
+    @ResponseBody
+    public String saveAnswer(
+            @PathVariable String attemptId,
+            @RequestParam String questionId,
+            @RequestParam String answer) {
+        try {
+            attemptService.saveAnswer(attemptId, questionId, answer);
+            return "{\"success\": true}";
+        } catch (RuntimeException e) {
+            return "{\"success\": false, \"error\": \"" + e.getMessage() + "\"}";
+        }
+    }
+
+    /**
+     * Submit quiz for grading
+     */
+    @PostMapping("/live-quiz/attempts/{attemptId}/submit")
+    public String submitQuiz(
+            @PathVariable String attemptId,
+            RedirectAttributes redirectAttributes) {
+        Optional<User> currentUser = userService.getCurrentUser();
+        if (currentUser.isEmpty()) {
+            return "redirect:/login";
+        }
+
+        try {
+            LiveQuizAttempt attempt = attemptService.submitQuiz(attemptId);
+
+            // Redirect to results
+            redirectAttributes.addFlashAttribute("success", "Quiz submitted successfully!");
+            return "redirect:/live-quiz/attempts/" + attemptId + "/results";
+
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/live-quiz/" + attemptId;
+        }
+    }
+
+    /**
+     * View quiz attempt results
+     */
+    @GetMapping("/live-quiz/attempts/{attemptId}/results")
+    public String viewResults(@PathVariable String attemptId, Model model) {
+        Optional<User> currentUser = userService.getCurrentUser();
+        if (currentUser.isEmpty()) {
+            return "redirect:/login";
+        }
+
+        User user = currentUser.get();
+
+        // Get attempt with access validation
+        Optional<LiveQuizAttempt> attemptOpt = attemptService.getAttemptWithAccess(attemptId, user.getId());
+        if (attemptOpt.isEmpty()) {
+            return "redirect:/classroom?error=Attempt+not+found+or+access+denied";
+        }
+
+        LiveQuizAttempt attempt = attemptOpt.get();
+
+        // Get session and quiz details
+        LiveQuizSession session = liveQuizSessionService.getSessionById(attempt.getSessionId())
+                .orElse(null);
+        Quiz quiz = quizAiService.getQuizById(attempt.getQuizId());
+
+        model.addAttribute("attempt", attempt);
+        model.addAttribute("session", session);
+        model.addAttribute("quiz", quiz);
+        model.addAttribute("currentUser", user);
+        model.addAttribute("contentPage", "live-quiz-results");
+        return "layout";
+    }
+
+    /**
+     * View leaderboard for a session
+     */
+    @GetMapping("/live-quiz/{id}/leaderboard")
+    public String viewLeaderboard(@PathVariable String id, Model model) {
+        Optional<User> currentUser = userService.getCurrentUser();
+        if (currentUser.isEmpty()) {
+            return "redirect:/login";
+        }
+
+        User user = currentUser.get();
+
+        // Get session with access validation
+        Optional<LiveQuizSession> sessionOpt = liveQuizSessionService.getSessionById(id);
+        if (sessionOpt.isEmpty()) {
+            return "redirect:/classroom?error=Session+not+found";
+        }
+
+        LiveQuizSession session = sessionOpt.get();
+
+        // Get classroom to check membership
+        var classroom = classroomService.getClassroomById(session.getClassroomId());
+
+        // Validate access
+        boolean isOwner = session.getTeacherId().equals(user.getId());
+        boolean isMember = classroom.isPresent() &&
+                classroom.get().getStudentIds() != null &&
+                classroom.get().getStudentIds().contains(user.getId());
+
+        if (!isOwner && !isMember) {
+            return "redirect:/classroom?error=Not+authorized";
+        }
+
+        // Get leaderboard
+        List<LiveQuizAttempt> leaderboard = attemptService.getLeaderboard(id);
+
+        model.addAttribute("session", session);
+        model.addAttribute("leaderboard", leaderboard);
+        model.addAttribute("isOwner", isOwner);
+        model.addAttribute("isMember", isMember);
+        model.addAttribute("currentUser", user);
+        model.addAttribute("contentPage", "live-quiz-leaderboard");
+        return "layout";
     }
 
     // ==================== STUDENT ACTIONS ====================

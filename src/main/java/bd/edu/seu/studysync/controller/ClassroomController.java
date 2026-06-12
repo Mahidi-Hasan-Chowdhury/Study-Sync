@@ -181,10 +181,10 @@ public class ClassroomController {
         User user = currentUser.get();
 
         // Check permissions
-        boolean isTeacher = classroomService.isTeacherOfClassroom(id, user.getId());
-        boolean isStudent = classroomService.isStudentInClassroom(id, user.getId());
+        boolean isOwner = classroom.getTeacherId().equals(user.getId());
+        boolean isMember = classroom.getStudentIds() != null && classroom.getStudentIds().contains(user.getId());
 
-        if (!isTeacher && !isStudent) {
+        if (!isOwner && !isMember) {
             return "redirect:/classroom?error=You+don't+have+access+to+this+classroom";
         }
 
@@ -199,8 +199,8 @@ public class ClassroomController {
         }
 
         model.addAttribute("classroom", classroom);
-        model.addAttribute("isTeacher", isTeacher);
-        model.addAttribute("isStudent", isStudent);
+        model.addAttribute("isOwner", isOwner);
+        model.addAttribute("isMember", isMember);
         model.addAttribute("currentUser", user);
         model.addAttribute("memberUsernames", memberUsernames);
 
