@@ -107,17 +107,6 @@ graph TD
 
 ---
 
-## Team Hallucinators
-
-This project was developed and presented at the Infinity AI BuildFest 2026 by:
-* **Mahedy Hasan** (Southeast University)
-* **Nabil Tawsif** (Nanchang University)
-* **Al Mahdi** (BRAC University)
-* **Shariat Islam Shojoy** (Mawlana Bhashani Science and Technology University)
-* **Rukaiya Sultana** (Southeast University)
-
----
-
 ## 📜 License
 
 Distributed under the MIT License. See `LICENSE` for more information.
