@@ -17,6 +17,9 @@
 - 📄 **Smart Document Processing**: Automatically extract text from PDFs and Word documents using Apache PDFBox and POI.
 - 🤖 **AI-Powered Quiz Generation**: Seamlessly generate high-quality Multiple Choice Questions (MCQs) from your study materials using **Spring AI** and **Groq Cloud LLM** (`llama-3.3-70b-versatile`).
 - 👥 **Real-time Quiz Rooms**: Collaborate and compete with peers in real-time quiz rooms powered by WebSockets.
+- **Subjective AI Evaluation**: Grade constructed-response short answers (CQs) out of 3 points based on core concept comprehension and receive qualitative natural language feedback.
+- **Virtual Classrooms**: Private teacher-led environments where students join via access codes to share PDF materials and manage rosters.
+- **Live Documentation Portal**: A controlled administrative system at `/docs` featuring a YC-style pitch deck, interactive Mermaid.js diagrams, and live system telemetry.
 - 💳 **Secure Payments**: Integrated **Stripe Checkout** for premium features and subscription management.
 - 🔐 **Robust Security**: Secure API endpoints with **JWT (JSON Web Tokens)** and role-based access control.
 - 📊 **Insightful Dashboard**: Track your learning progress, quiz attempts, and performance metrics.
