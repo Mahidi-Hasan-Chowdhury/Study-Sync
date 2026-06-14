@@ -4,13 +4,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import jakarta.annotation.PostConstruct;
 
-
-
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
-import jakarta.annotation.PostConstruct;
-
+/**
+ * Diagnostic logger to verify API key resolution during application startup.
+ */
 @Configuration
 public class ApiKeyLogger {
 
